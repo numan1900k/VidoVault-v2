@@ -1,51 +1,25 @@
-const express = require('express');
-const http = require('http');
-const path = require('path');
-const cors = require('cors');
-const { Server } = require('socket.io');
-
-const app = express();
-const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: "*" }, maxHttpBufferSize: 1e8 });
-
-const PORT = process.env.PORT || 10000;
-
-app.use(cors());
-app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
-
-let users = {};
-
-io.on('connection', socket => {
-  socket.on('join', (name) => {
-    users[socket.id] = name;
-    io.emit('users', Object.values(users));
-  });
-  socket.on('msg', (data) => io.emit('msg', data));
-  socket.on('private_msg', (data) => {
-    const targetId = Object.keys(users).find(k => users[k] === data.to);
-    if(targetId) io.to(targetId).emit('private_msg', data);
-    socket.emit('private_msg', data);
-  });
-  socket.on('file', (data) => io.emit('file', data));
-  socket.on('call_user', (data) => {
-    const targetId = Object.keys(users).find(k => users[k] === data.to);
-    if(targetId) io.to(targetId).emit('incoming_call', { from: users[socket.id], offer: data.offer });
-  });
-  socket.on('answer_call', (data) => {
-    const targetId = Object.keys(users).find(k => users[k] === data.to);
-    if(targetId) io.to(targetId).emit('call_answered', data);
-  });
-  socket.on('ice', (data) => {
-    const targetId = Object.keys(users).find(k => users[k] === data.to);
-    if(targetId) io.to(targetId).emit('ice', data);
-  });
-  socket.on('disconnect', () => {
-    delete users[socket.id];
-    io.emit('users', Object.values(users));
-  });
+function showTab(t){
+  if(t==='status'){
+    let img = prompt('Status ke liye image URL ya text likh:');
+    if(img) socket.emit('postStatus',{id:myId,name:myName,dp:myDP,text:img,time:Date.now()});
+  }
+  if(t==='groups'){
+    let gname = prompt('Group ka naam:');
+    if(!gname) return;
+    let members = prompt('Members ke IDs comma se (ex: user_123,user_456):');
+    let mArr = members? members.split(',') : [];
+    socket.emit('createGroup',{groupId:'g_'+Date.now(),name:gname,members:mArr,creator:myId});
+    alert('Group ban gaya: '+gname);
+  }
+}
+socket.on('statuses', (list)=>{
+  console.log('Statuses', list);
+  // yaha tu status ko upar gol gol dikha sakta hai
 });
-
-app.get('*', (req,res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
-
-server.listen(PORT, () => console.log('WhatsApp Clone Live on ' + PORT));
+socket.on('groups', (list)=>{
+  console.log('Groups', list);
+});
+socket.on('groupMsg', (data)=>{
+  // group message aaya
+  addBubble({...data,text:'[Group '+data.groupId+'] '+data.text}, 'other');
+});
