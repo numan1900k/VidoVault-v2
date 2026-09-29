@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "com.onrender.vidovault_v2_1.twa",
+        "sha256_cert_fingerprints": ["14:C1:EC:63:BA:D9:72:5E:E5:21:F4:AA:7F:B8:A4:51:8A:20:1A:85:4B:18:FA:34:C0:CF:D6:42:70:09:E7:05"]
+      }
+    }]
