@@ -9,15 +9,15 @@
   "icons": [
     {
       "src": "https://cdn-icons-png.flaticon.com/512/733/733585.png",
-      "sizes": "512x512",
+      "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any"
+      "purpose": "any maskable"
     },
     {
       "src": "https://cdn-icons-png.flaticon.com/512/733/733585.png",
-      "sizes": "192x192",
+      "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any"
+      "purpose": "any maskable"
     }
   ]
 }
