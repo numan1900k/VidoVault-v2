@@ -1,75 +1,74 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>WhatsApp</title>
-<link rel="icon" href="https://static.whatsapp.net/rsrc.php/v3/y6/r/keI3Flh4Yd-.png">
 <script src="/socket.io/socket.io.js"></script>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Segoe UI,Helvetica,Arial,sans-serif}
-body{height:100vh;background:#111b21;display:flex;align-items:center;justify-content:center}
-#app{width:100%;height:100%;max-width:1600px;max-height:100vh;display:flex;background:#111b21}
-#side{width:30%;min-width:350px;background:#111b21;border-right:1px solid #222d34;display:flex;flex-direction:column}
-.side-head{background:#202c33;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;height:59px}
-.side-head b{color:#e9edef;font-size:19px}
-.search{background:#111b21;padding:7px 12px;border-bottom:1px solid #222d34}
-.search div{background:#202c33;border-radius:8px;display:flex;align-items:center;padding:0 12px}
-.search input{width:100%;background:transparent;border:none;outline:none;color:#d1d7db;padding:9px;font-size:14px}
-.user{padding:12px;display:flex;gap:12px;cursor:pointer;border-bottom:1px solid #222d34}
-.user:hover{background:#202c33}.user.active{background:#2a3942}
-.avatar{width:49px;height:49px;border-radius:50%;background:#00a884;display:grid;place-items:center;color:#fff;font-weight:bold;font-size:20px}
-.user-info{flex:1}.user-info div:first-child{color:#e9edef;font-size:17px}.user-info div:last-child{color:#8696a0;font-size:13px;margin-top:3px}
-#main{flex:1;display:flex;flex-direction:column;background:#0b141a;position:relative}
-.main-head{background:#202c33;height:59px;padding:10px 16px;display:flex;justify-content:space-between;align-items:center}
-.main-head b{color:#e9edef}
-#chat{flex:1;overflow-y:auto;padding:20px 8%;background-image:url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');background-color:#0b141a}
-.bubble{max-width:65%;padding:6px 7px 8px 9px;border-radius:7.5px;margin:2px 0;position:relative;font-size:14.2px;line-height:19px;word-wrap:break-word;box-shadow:0 1px 0.5px rgba(0,0,0,.13)}
+*{margin:0;padding:0;box-sizing:border-box;font-family: Segoe UI,Roboto}
+body{background:#111b21;height:100dvh;overflow:hidden}
+#app{display:flex;height:100dvh;width:100%}
+#side{width:100%;background:#111b21;display:flex;flex-direction:column}
+#main{width:100%;background:#0b141a;display:none;flex-direction:column}
+@media(min-width:900px){ #side{width:400px;min-width:400px;display:flex!important;border-right:1px solid #222d34} #main{display:flex!important} #backBtn{display:none!important} }
+.side-head{background:#202c33;height:59px;padding:0 16px;display:flex;align-items:center;justify-content:space-between}
+.side-head b{color:#e9edef;font-size:20px;font-weight:500}
+.search{padding:8px 12px;background:#111b21}
+.search-box{background:#202c33;border-radius:8px;display:flex;align-items:center;padding:0 12px}
+.search-box input{width:100%;background:transparent;border:none;outline:none;color:#d1d7db;padding:10px;font-size:14px}
+.user{padding:12px 16px;display:flex;gap:14px;align-items:center;cursor:pointer}
+.user:active{background:#2a3942}
+.avatar{width:49px;height:49px;border-radius:50%;background:#00a884;display:grid;place-items:center;color:#fff;font-weight:600;font-size:20px;flex-shrink:0}
+.user-info{flex:1;border-bottom:1px solid #222d34;padding-bottom:12px}
+.user-info b{color:#e9edef;font-size:17px;font-weight:400}
+.user-info span{color:#8696a0;font-size:13px;display:block;margin-top:2px}
+.main-head{background:#202c33;height:59px;padding:0 10px;display:flex;align-items:center;justify-content:space-between}
+#chat{flex:1;overflow-y:auto;padding:10px;background:#0b141a;background-image:url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png')}
+.bubble{max-width:75%;padding:6px 8px;border-radius:7.5px;margin:4px 8px;font-size:14.5px;line-height:19px;position:relative;box-shadow:0 1px.5px rgba(0,0,0,.13)}
 .bubble.me{background:#005c4b;color:#e9edef;margin-left:auto;border-top-right-radius:0}
 .bubble.other{background:#202c33;color:#e9edef;border-top-left-radius:0}
-.bubble.private{border-left:4px solid #ffab00}
-.time{font-size:11px;color:#8696a0;float:right;margin:6px 0 0 6px}
-#inputBar{background:#202c33;padding:5px 10px;display:flex;align-items:center;gap:10px;min-height:62px}
-#msgInput{flex:1;background:#2a3942;border:none;outline:none;color:#d1d7db;border-radius:21px;padding:9px 12px;font-size:15px}
-.iconBtn{width:45px;height:45px;border-radius:50%;display:grid;place-items:center;cursor:pointer;color:#8696a0;font-size:22px}
+.time{font-size:11px;color:#8696a0;float:right;margin:5px 0 0 8px}
+#inputBar{background:#202c33;padding:6px 8px;display:flex;align-items:center;gap:6px}
+#msgInput{flex:1;background:#2a3942;border:none;outline:none;color:#e9edef;border-radius:21px;padding:10px 14px;font-size:15px}
+.iconBtn{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;color:#8696a0;font-size:22px;cursor:pointer;flex-shrink:0}
 .iconBtn.send{background:#00a884;color:#fff}
-#login{position:fixed;inset:0;background:#111b21;z-index:100;display:flex;align-items:center;justify-content:center}
-.login-card{background:#202c33;padding:30px;border-radius:12px;width:360px;text-align:center}
-.login-card h2{color:#e9edef;margin-bottom:15px}.login-card input{width:100%;padding:12px;border-radius:8px;border:none;background:#2a3942;color:#fff;outline:none;margin-bottom:12px}
-.login-card button{width:100%;padding:12px;background:#00a884;border:none;border-radius:8px;color:#fff;font-weight:bold;cursor:pointer;font-size:15px}
-#callBox{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#202c33;padding:30px;border-radius:15px;z-index:50;display:none;text-align:center;color:#fff;min-width:300px}
+#login{position:fixed;inset:0;background:#111b21;z-index:100;display:flex;align-items:center;justify-content:center;padding:20px}
+.login-card{background:#202c33;padding:28px;border-radius:14px;width:100%;max-width:350px;text-align:center}
+.login-card h2{color:#e9edef;margin-bottom:8px}
+.login-card input{width:100%;padding:13px;border-radius:8px;border:none;background:#2a3942;color:#fff;outline:none;margin:15px 0}
+.login-card button{width:100%;padding:13px;background:#00a884;border:none;border-radius:8px;color:#fff;font-weight:bold;font-size:16px}
+#backBtn{font-size:24px;color:#e9edef;margin-right:10px;cursor:pointer}
+#callBox{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#202c33;padding:30px;border-radius:16px;z-index:50;display:none;text-align:center;color:#fff;min-width:280px}
 </style>
 </head>
 <body>
-<div id="login"><div class="login-card"><h2>WhatsApp</h2><p style="color:#8696a0;font-size:14px;margin-bottom:15px">Apna naam likho</p><input id="nameInput" placeholder="Numan Khan"><button onclick="join()">Continue to Chat</button></div></div>
+<div id="login"><div class="login-card"><h2>WhatsApp</h2><p style="color:#8696a0;font-size:14px">Enter your name to start</p><input id="nameInput" placeholder="Numan Khan"><button onclick="join()">Continue</button></div></div>
 <div id="app">
 <div id="side">
-<div class="side-head"><b>chats</b><span id="myName" style="color:#8696a0;font-size:14px"></span></div>
-<div class="search"><div>🔍<input placeholder="Search or start new chat"></div></div>
+<div class="side-head"><b>WhatsApp</b><span style="color:#00a884">●</span></div>
+<div class="search"><div class="search-box">🔍<input placeholder="Search or start new chat"></div></div>
 <div id="users" style="flex:1;overflow-y:auto"></div>
 </div>
 <div id="main">
-<div class="main-head"><div style="display:flex;align-items:center;gap:12px"><div class="avatar" id="chatAvatar">E</div><div><b id="chatName">Everyone</b><div style="color:#8696a0;font-size:13px">click to see private options</div></div></div><div style="display:flex;gap:8px"><div class="iconBtn" onclick="startCall()">📞</div><div class="iconBtn" onclick="document.getElementById('fileIn').click()">📎</div></div></div>
+<div class="main-head"><div style="display:flex;align-items:center"><span id="backBtn" onclick="showList()">←</span><div class="avatar" id="chatAvatar" style="width:40px;height:40px;font-size:16px">E</div><div style="margin-left:12px"><b id="chatName" style="color:#e9edef;font-size:16px">Everyone</b><div style="color:#8696a0;font-size:12px">tap here for contact info</div></div></div><div style="display:flex;gap:2px"><div class="iconBtn" onclick="startCall()">📞</div><div class="iconBtn" onclick="document.getElementById('fileIn').click()">📎</div></div></div>
 <div id="chat"></div>
-<div id="inputBar">
-<div class="iconBtn">😊</div>
-<input id="msgInput" placeholder="Type a message" onkeypress="if(event.key==='Enter')send()">
-<input type="file" id="fileIn" hidden onchange="sendFile(this)">
-<div class="iconBtn send" onclick="send()">➤</div>
-</div>
-<div id="callBox"><h3 id="callTxt">Calling...</h3><audio id="remoteAudio" autoplay></audio><br><button onclick="accept()" style="padding:10px 20px;background:#00a884;border:none;border-radius:20px;color:#fff;margin-right:10px">Accept</button><button onclick="endCall()" style="padding:10px 20px;background:#f15c6d;border:none;border-radius:20px;color:#fff">End</button></div>
+<div id="inputBar"><div class="iconBtn">😊</div><input id="msgInput" placeholder="Type a message" onkeypress="if(event.key==='Enter')send()"><input type="file" id="fileIn" hidden onchange="sendFile(this)"><div class="iconBtn send" onclick="send()">➤</div></div>
+<div id="callBox"><h3 id="callTxt">Calling...</h3><audio id="remoteAudio" autoplay></audio><br><br><button onclick="accept()" style="padding:10px 24px;background:#00a884;border:none;border-radius:20px;color:#fff;margin-right:10px">Accept</button><button onclick="endCall()" style="padding:10px 24px;background:#f15c6d;border:none;border-radius:20px;color:#fff">End</button></div>
 </div>
 </div>
 <script>
 const socket=io(); let myName='', selected='Everyone', peer, _offer;
-function join(){ myName=document.getElementById('nameInput').value.trim(); if(!myName) return; document.getElementById('login').style.display='none'; document.getElementById('myName').innerText=myName; socket.emit('join',myName); }
-function bubble(d,isMe){ const c=document.getElementById('chat'); const div=document.createElement('div'); div.className='bubble '+(isMe?'me':'other')+(d.isPrivate?' private':''); let html=(d.text||''); if(d.file){ html+=`<br><a href="${d.file}" download="${d.fileName}" style="color:#53bdeb;text-decoration:none">📄 ${d.fileName}</a>`; if(d.fileType?.startsWith('image')) html+=`<br><img src="${d.file}" style="max-width:250px;border-radius:6px;margin-top:6px">`; } html+=`<span class="time">${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})} ✓✓</span>`; div.innerHTML=html; c.appendChild(div); c.scrollTop=c.scrollHeight; }
+function join(){ myName=document.getElementById('nameInput').value.trim(); if(!myName) return; document.getElementById('login').style.display='none'; socket.emit('join',myName); }
+function showList(){ document.getElementById('side').style.display='flex'; document.getElementById('main').style.display='none'; }
+function showChat(){ if(window.innerWidth<900){ document.getElementById('side').style.display='none'; document.getElementById('main').style.display='flex'; } }
+function bubble(d,isMe){ const c=document.getElementById('chat'); const div=document.createElement('div'); div.className='bubble '+(isMe?'me':'other'); let h=(d.text||''); if(d.file){ h+=`<br><a href="${d.file}" download="${d.fileName}" style="color:#53bdeb;text-decoration:none">📄 ${d.fileName}</a>`; if(d.fileType?.startsWith('image')) h+=`<br><img src="${d.file}" style="max-width:200px;border-radius:8px;margin-top:6px">`; } h+=`<span class="time">${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})} ✓✓</span>`; div.innerHTML=h; c.appendChild(div); c.scrollTop=c.scrollHeight; }
 function send(){ const t=document.getElementById('msgInput').value.trim(); if(!t) return; const d={from:myName,to:selected,text:t,isPrivate:selected!=='Everyone'}; if(d.isPrivate) socket.emit('private_msg',d); else socket.emit('msg',d); if(d.isPrivate) bubble(d,true); document.getElementById('msgInput').value=''; }
 socket.on('msg',d=>bubble(d,d.from===myName)); socket.on('private_msg',d=>bubble(d,d.from===myName)); socket.on('file',d=>bubble(d,d.from===myName));
-socket.on('users',list=>{ const u=document.getElementById('users'); u.innerHTML=''; [{name:'Everyone',sub:'Group chat for all'}].concat(list.filter(n=>n!==myName).map(n=>({name:n,sub:'Tap to private chat'}))).forEach(x=>{ const div=document.createElement('div'); div.className='user'+(selected===x.name?' active':''); div.innerHTML=`<div class="avatar">${x.name[0]}</div><div class="user-info"><div>${x.name}</div><div>${x.sub}</div></div>`; div.onclick=()=>{ selected=x.name; document.getElementById('chatName').innerText=x.name; document.getElementById('chatAvatar').innerText=x.name[0]; document.querySelectorAll('.user').forEach(e=>e.classList.remove('active')); div.classList.add('active'); }; u.appendChild(div); }); });
+socket.on('users',list=>{ const u=document.getElementById('users'); u.innerHTML=''; [{name:'Everyone',sub:'Group chat for all members'}].concat(list.filter(n=>n!==myName).map(n=>({name:n,sub:'Tap to chat privately'}))).forEach(x=>{ const div=document.createElement('div'); div.className='user'; div.innerHTML=`<div class="avatar">${x.name[0].toUpperCase()}</div><div class="user-info"><b>${x.name}</b><span>${x.sub}</span></div>`; div.onclick=()=>{ selected=x.name; document.getElementById('chatName').innerText=x.name; document.getElementById('chatAvatar').innerText=x.name[0].toUpperCase(); showChat(); }; u.appendChild(div); }); });
 function sendFile(inp){ const f=inp.files[0]; if(!f) return; const r=new FileReader(); r.onload=e=>{ socket.emit('file',{from:myName,to:selected,file:e.target.result,fileType:f.type,fileName:f.name,text:'',isPrivate:selected!=='Everyone'}); }; r.readAsDataURL(f); }
 async function makePeer(){ peer=new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'}]}); peer.onicecandidate=e=>{ if(e.candidate) socket.emit('ice',{to:selected,candidate:e.candidate}); }; peer.ontrack=e=>{ document.getElementById('remoteAudio').srcObject=e.streams[0]; }; const s=await navigator.mediaDevices.getUserMedia({audio:true}); s.getTracks().forEach(t=>peer.addTrack(t,s)); return peer; }
-async function startCall(){ if(selected==='Everyone') return alert('Private chat pe jao call ke liye'); document.getElementById('callBox').style.display='block'; document.getElementById('callTxt').innerText='Calling '+selected+'...'; const p=await makePeer(); const o=await p.createOffer(); await p.setLocalDescription(o); socket.emit('call_user',{to:selected,offer:o}); }
-socket.on('incoming_call',async ({from,offer})=>{ selected=from; document.getElementById('chatName').innerText=from; document.getElementById('callBox').style.display='block'; document.getElementById('callTxt').innerText=from+' is calling...'; _offer=offer; });
+async function startCall(){ if(selected==='Everyone') return alert('Pehle kisi user pe click karke private chat kholo'); document.getElementById('callBox').style.display='block'; document.getElementById('callTxt').innerText='Calling '+selected+'...'; const p=await makePeer(); const o=await p.createOffer(); await p.setLocalDescription(o); socket.emit('call_user',{to:selected,offer:o}); }
+socket.on('incoming_call',async ({from,offer})=>{ selected=from; document.getElementById('chatName').innerText=from; document.getElementById('chatAvatar').innerText=from[0]; showChat(); document.getElementById('callBox').style.display='block'; document.getElementById('callTxt').innerText=from+' is calling...'; _offer=offer; });
 async function accept(){ const p=await makePeer(); await p.setRemoteDescription(new RTCSessionDescription(_offer)); const a=await p.createAnswer(); await p.setLocalDescription(a); socket.emit('answer_call',{to:selected,answer:a}); document.getElementById('callTxt').innerText='On call with '+selected; }
 socket.on('call_answered',async ({answer})=>{ await peer.setRemoteDescription(new RTCSessionDescription(answer)); document.getElementById('callTxt').innerText='On call with '+selected; });
 socket.on('ice',async ({candidate})=>{ try{ await peer.addIceCandidate(new RTCIceCandidate(candidate)); }catch{}});
