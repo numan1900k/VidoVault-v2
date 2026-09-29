@@ -1,0 +1,16 @@
+{
+  "name": "WhatsApp - Numan Chat",
+  "short_name": "WhatsApp",
+  "description": "Private WhatsApp like chat app",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#111b21",
+  "theme_color": "#00a884",
+  "icons": [
+    {
+      "src": "https://static.whatsapp.net/rsrc.php/v3/y6/r/keI3Flh4Yd-.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
