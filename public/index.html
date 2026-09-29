@@ -1,81 +1,141 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>WhatsApp</title>
-  <link rel="manifest" href="/manifest.json">
+<link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#00a884">
-<script src="/socket.io/socket.io.js"></script>
-  <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js')}</script>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family: Segoe UI,Roboto}
-body{background:#111b21;height:100dvh;overflow:hidden}
-#app{display:flex;height:100dvh;width:100%}
-#side{width:100%;background:#111b21;display:flex;flex-direction:column}
-#main{width:100%;background:#0b141a;display:none;flex-direction:column}
-@media(min-width:900px){ #side{width:400px;min-width:400px;display:flex!important;border-right:1px solid #222d34} #main{display:flex!important} #backBtn{display:none!important} }
-.side-head{background:#202c33;height:59px;padding:0 16px;display:flex;align-items:center;justify-content:space-between}
-.side-head b{color:#e9edef;font-size:20px;font-weight:500}
-.search{padding:8px 12px;background:#111b21}
-.search-box{background:#202c33;border-radius:8px;display:flex;align-items:center;padding:0 12px}
-.search-box input{width:100%;background:transparent;border:none;outline:none;color:#d1d7db;padding:10px;font-size:14px}
-.user{padding:12px 16px;display:flex;gap:14px;align-items:center;cursor:pointer}
-.user:active{background:#2a3942}
-.avatar{width:49px;height:49px;border-radius:50%;background:#00a884;display:grid;place-items:center;color:#fff;font-weight:600;font-size:20px;flex-shrink:0}
-.user-info{flex:1;border-bottom:1px solid #222d34;padding-bottom:12px}
-.user-info b{color:#e9edef;font-size:17px;font-weight:400}
-.user-info span{color:#8696a0;font-size:13px;display:block;margin-top:2px}
-.main-head{background:#202c33;height:59px;padding:0 10px;display:flex;align-items:center;justify-content:space-between}
-#chat{flex:1;overflow-y:auto;padding:10px;background:#0b141a;background-image:url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png')}
-.bubble{max-width:75%;padding:6px 8px;border-radius:7.5px;margin:4px 8px;font-size:14.5px;line-height:19px;position:relative;box-shadow:0 1px.5px rgba(0,0,0,.13)}
-.bubble.me{background:#005c4b;color:#e9edef;margin-left:auto;border-top-right-radius:0}
-.bubble.other{background:#202c33;color:#e9edef;border-top-left-radius:0}
-.time{font-size:11px;color:#8696a0;float:right;margin:5px 0 0 8px}
-#inputBar{background:#202c33;padding:6px 8px;display:flex;align-items:center;gap:6px}
-#msgInput{flex:1;background:#2a3942;border:none;outline:none;color:#e9edef;border-radius:21px;padding:10px 14px;font-size:15px}
-.iconBtn{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;color:#8696a0;font-size:22px;cursor:pointer;flex-shrink:0}
-.iconBtn.send{background:#00a884;color:#fff}
-#login{position:fixed;inset:0;background:#111b21;z-index:100;display:flex;align-items:center;justify-content:center;padding:20px}
-.login-card{background:#202c33;padding:28px;border-radius:14px;width:100%;max-width:350px;text-align:center}
-.login-card h2{color:#e9edef;margin-bottom:8px}
-.login-card input{width:100%;padding:13px;border-radius:8px;border:none;background:#2a3942;color:#fff;outline:none;margin:15px 0}
-.login-card button{width:100%;padding:13px;background:#00a884;border:none;border-radius:8px;color:#fff;font-weight:bold;font-size:16px}
-#backBtn{font-size:24px;color:#e9edef;margin-right:10px;cursor:pointer}
-#callBox{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#202c33;padding:30px;border-radius:16px;z-index:50;display:none;text-align:center;color:#fff;min-width:280px}
+:root{--wa-green:#00a884;--bg:#111b21;--header:#202c33;--chat-bg:#0b141a;--bubble-me:#005c4b;--bubble-other:#202c33;--text:#e9edef}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Segoe UI,Helvetica,Arial,sans-serif}
+body{background:var(--bg);color:var(--text);display:flex;flex-direction:column;height:100vh;overflow:hidden}
+body.light{--bg:#fff;--header:#f0f2f5;--chat-bg:#efeae2;--bubble-me:#d9fdd3;--bubble-other:#fff;--text:#111b21}
+header{background:var(--header);padding:10px 16px;display:flex;align-items:center;justify-content:space-between}
+.h-left{display:flex;align-items:center;gap:12px}
+#myDP{width:40px;height:40px;border-radius:50%;object-fit:cover;cursor:pointer;background:#00a884}
+#chatBox{flex:1;background:var(--chat-bg);overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:6px}
+.bubble{max-width:75%;padding:8px 10px;border-radius:8px;word-break:break-word}
+.me{align-self:flex-end;background:var(--bubble-me);border-top-right-radius:0}
+.other{align-self:flex-start;background:var(--bubble-other);border-top-left-radius:0}
+.meta{font-size:10px;opacity:0.6;margin-top:4px;text-align:right}
+.tick{font-size:11px;margin-left:6px}
+.tick.blue{color:#53bdeb}
+.input-area{background:var(--header);padding:8px 10px;display:flex;gap:8px;align-items:center}
+.input-area input[type=text]{flex:1;padding:10px 14px;border-radius:20px;border:none;outline:none;background:var(--bubble-other);color:var(--text)}
+.btn{width:40px;height:40px;border-radius:50%;border:none;background:var(--wa-green);color:white;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:20px}
+#users{position:absolute;top:60px;left:10px;background:var(--header);border-radius:10px;padding:10px;z-index:10;min-width:220px;display:none;max-height:60vh;overflow:auto}
+.user-row{display:flex;align-items:center;gap:10px;padding:8px;border-radius:8px;cursor:pointer}
+.typing{font-size:12px;color:var(--wa-green);padding:4px 16px;height:18px}
 </style>
 </head>
 <body>
-<div id="login"><div class="login-card"><h2>WhatsApp</h2><p style="color:#8696a0;font-size:14px">Enter your name to start</p><input id="nameInput" placeholder="Numan Khan"><button onclick="join()">Continue</button></div></div>
-<div id="app">
-<div id="side">
-<div class="side-head"><b>WhatsApp</b><span style="color:#00a884">●</span></div>
-<div class="search"><div class="search-box">🔍<input placeholder="Search or start new chat"></div></div>
-<div id="users" style="flex:1;overflow-y:auto"></div>
+<header>
+<div class="h-left">
+<img id="myDP" src="https://i.pravatar.cc/100">
+<div><div id="myName" style="font-weight:600"></div><div id="onlineStatus" style="font-size:12px;opacity:0.7">online</div></div>
 </div>
-<div id="main">
-<div class="main-head"><div style="display:flex;align-items:center"><span id="backBtn" onclick="showList()">←</span><div class="avatar" id="chatAvatar" style="width:40px;height:40px;font-size:16px">E</div><div style="margin-left:12px"><b id="chatName" style="color:#e9edef;font-size:16px">Everyone</b><div style="color:#8696a0;font-size:12px">tap here for contact info</div></div></div><div style="display:flex;gap:2px"><div class="iconBtn" onclick="startCall()">📞</div><div class="iconBtn" onclick="document.getElementById('fileIn').click()">📎</div></div></div>
-<div id="chat"></div>
-<div id="inputBar"><div class="iconBtn">😊</div><input id="msgInput" placeholder="Type a message" onkeypress="if(event.key==='Enter')send()"><input type="file" id="fileIn" hidden onchange="sendFile(this)"><div class="iconBtn send" onclick="send()">➤</div></div>
-<div id="callBox"><h3 id="callTxt">Calling...</h3><audio id="remoteAudio" autoplay></audio><br><br><button onclick="accept()" style="padding:10px 24px;background:#00a884;border:none;border-radius:20px;color:#fff;margin-right:10px">Accept</button><button onclick="endCall()" style="padding:10px 24px;background:#f15c6d;border:none;border-radius:20px;color:#fff">End</button></div>
+<div style="display:flex;gap:8px">
+<button class="btn" id="darkBtn" style="background:var(--header)">🌙</button>
+<button class="btn" id="usersBtn" style="background:var(--header)">👥</button>
+<input type="file" id="dpInput" accept="image/*" hidden>
 </div>
+</header>
+<div id="users"></div>
+<div class="typing" id="typing"></div>
+<div id="chatBox"></div>
+<div class="input-area">
+<label class="btn" style="background:var(--header)" for="fileInput">📎</label>
+<input type="file" id="fileInput" accept="image/*,video/*" hidden>
+<input type="text" id="msgInput" placeholder="Message">
+<button class="btn" id="voiceBtn">🎤</button>
+<button class="btn" id="sendBtn">➤</button>
 </div>
+<script src="/socket.io/socket.io.js"></script>
 <script>
-const socket=io(); let myName='', selected='Everyone', peer, _offer;
-function join(){ myName=document.getElementById('nameInput').value.trim(); if(!myName) return; document.getElementById('login').style.display='none'; socket.emit('join',myName); }
-function showList(){ document.getElementById('side').style.display='flex'; document.getElementById('main').style.display='none'; }
-function showChat(){ if(window.innerWidth<900){ document.getElementById('side').style.display='none'; document.getElementById('main').style.display='flex'; } }
-function bubble(d,isMe){ const c=document.getElementById('chat'); const div=document.createElement('div'); div.className='bubble '+(isMe?'me':'other'); let h=(d.text||''); if(d.file){ h+=`<br><a href="${d.file}" download="${d.fileName}" style="color:#53bdeb;text-decoration:none">📄 ${d.fileName}</a>`; if(d.fileType?.startsWith('image')) h+=`<br><img src="${d.file}" style="max-width:200px;border-radius:8px;margin-top:6px">`; } h+=`<span class="time">${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})} ✓✓</span>`; div.innerHTML=h; c.appendChild(div); c.scrollTop=c.scrollHeight; }
-function send(){ const t=document.getElementById('msgInput').value.trim(); if(!t) return; const d={from:myName,to:selected,text:t,isPrivate:selected!=='Everyone'}; if(d.isPrivate) socket.emit('private_msg',d); else socket.emit('msg',d); if(d.isPrivate) bubble(d,true); document.getElementById('msgInput').value=''; }
-socket.on('msg',d=>bubble(d,d.from===myName)); socket.on('private_msg',d=>bubble(d,d.from===myName)); socket.on('file',d=>bubble(d,d.from===myName));
-socket.on('users',list=>{ const u=document.getElementById('users'); u.innerHTML=''; [{name:'Everyone',sub:'Group chat for all members'}].concat(list.filter(n=>n!==myName).map(n=>({name:n,sub:'Tap to chat privately'}))).forEach(x=>{ const div=document.createElement('div'); div.className='user'; div.innerHTML=`<div class="avatar">${x.name[0].toUpperCase()}</div><div class="user-info"><b>${x.name}</b><span>${x.sub}</span></div>`; div.onclick=()=>{ selected=x.name; document.getElementById('chatName').innerText=x.name; document.getElementById('chatAvatar').innerText=x.name[0].toUpperCase(); showChat(); }; u.appendChild(div); }); });
-function sendFile(inp){ const f=inp.files[0]; if(!f) return; const r=new FileReader(); r.onload=e=>{ socket.emit('file',{from:myName,to:selected,file:e.target.result,fileType:f.type,fileName:f.name,text:'',isPrivate:selected!=='Everyone'}); }; r.readAsDataURL(f); }
-async function makePeer(){ peer=new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'}]}); peer.onicecandidate=e=>{ if(e.candidate) socket.emit('ice',{to:selected,candidate:e.candidate}); }; peer.ontrack=e=>{ document.getElementById('remoteAudio').srcObject=e.streams[0]; }; const s=await navigator.mediaDevices.getUserMedia({audio:true}); s.getTracks().forEach(t=>peer.addTrack(t,s)); return peer; }
-async function startCall(){ if(selected==='Everyone') return alert('Pehle kisi user pe click karke private chat kholo'); document.getElementById('callBox').style.display='block'; document.getElementById('callTxt').innerText='Calling '+selected+'...'; const p=await makePeer(); const o=await p.createOffer(); await p.setLocalDescription(o); socket.emit('call_user',{to:selected,offer:o}); }
-socket.on('incoming_call',async ({from,offer})=>{ selected=from; document.getElementById('chatName').innerText=from; document.getElementById('chatAvatar').innerText=from[0]; showChat(); document.getElementById('callBox').style.display='block'; document.getElementById('callTxt').innerText=from+' is calling...'; _offer=offer; });
-async function accept(){ const p=await makePeer(); await p.setRemoteDescription(new RTCSessionDescription(_offer)); const a=await p.createAnswer(); await p.setLocalDescription(a); socket.emit('answer_call',{to:selected,answer:a}); document.getElementById('callTxt').innerText='On call with '+selected; }
-socket.on('call_answered',async ({answer})=>{ await peer.setRemoteDescription(new RTCSessionDescription(answer)); document.getElementById('callTxt').innerText='On call with '+selected; });
-socket.on('ice',async ({candidate})=>{ try{ await peer.addIceCandidate(new RTCIceCandidate(candidate)); }catch{}});
-function endCall(){ if(peer){peer.close(); peer=null;} document.getElementById('callBox').style.display='none'; }
+//... full logic for DP, Tick, Dark mode, Voice, Photo, Typing
+const socket=io();
+let myId=localStorage.getItem('wa_id')||'user_'+Math.floor(Math.random()*9999);
+localStorage.setItem('wa_id',myId);
+let myName=localStorage.getItem('wa_name')||prompt('Apna naam:')||myId;
+localStorage.setItem('wa_name',myName);
+document.getElementById('myName').innerText=myName;
+let myDP=localStorage.getItem('wa_dp')||'https://i.pravatar.cc/100?u='+myId;
+document.getElementById('myDP').src=myDP;
+let selectedUser=null, isRecording=false, mediaRecorder, audioChunks=[];
+const chatBox=document.getElementById('chatBox'), msgInput=document.getElementById('msgInput'), typingEl=document.getElementById('typing');
+let dark=localStorage.getItem('dark')!=='false';
+function applyDark(){document.body.classList.toggle('light',!dark); document.getElementById('darkBtn').innerText=dark?'🌙':'☀️';}
+applyDark();
+document.getElementById('darkBtn').onclick=()=>{dark=!dark; localStorage.setItem('dark',dark); applyDark();};
+document.getElementById('myDP').onclick=()=>document.getElementById('dpInput').click();
+document.getElementById('dpInput').onchange=e=>{
+  const file=e.target.files[0]; if(!file) return;
+  const r=new FileReader(); r.onload=()=>{myDP=r.result; localStorage.setItem('wa_dp',myDP); document.getElementById('myDP').src=myDP; socket.emit('updateDP',{id:myId,dp:myDP,name:myName});}; r.readAsDataURL(file);
+};
+socket.emit('join',{id:myId,name:myName,dp:myDP});
+socket.on('users',users=>{
+  const div=document.getElementById('users'); div.innerHTML='<b>Online Users</b><br><br>';
+  users.forEach(u=>{ if(u.id===myId) return;
+    const row=document.createElement('div'); row.className='user-row';
+    row.innerHTML=`<img src="${u.dp}" style="width:36px;height:36px;border-radius:50%"><div style="flex:1"><div>${u.name}</div><div style="font-size:11px;opacity:0.6">${u.online?'online':'offline'}</div></div>`;
+    row.onclick=()=>{selectedUser=u; div.style.display='none'; document.getElementById('onlineStatus').innerText='chatting with '+u.name;};
+    div.appendChild(row);
+  });
+});
+socket.on('receive',data=>{
+  const div=document.createElement('div'); div.className='bubble other'; div.id=data.msgId;
+  let c=''; if(data.image) c+=`<img src="${data.image}" style="max-width:100%;border-radius:8px"><br>`;
+  if(data.audio) c+=`<audio controls src="${data.audio}" style="max-width:200px"></audio><br>`;
+  c+=`<span>${data.text||''}</span>`;
+  const time=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  div.innerHTML=c+`<div class="meta">${time}</div>`;
+  chatBox.appendChild(div); chatBox.scrollTop=chatBox.scrollHeight;
+  socket.emit('delivered',{msgId:data.msgId,from:data.from}); socket.emit('seen',{msgId:data.msgId,from:data.from});
+});
+socket.on('delivered',({msgId})=>{ const el=document.getElementById(msgId); if(el) el.querySelector('.tick').innerText='✓✓'; });
+socket.on('seen',({msgId})=>{ const el=document.getElementById(msgId); if(el) el.querySelector('.tick').innerHTML='<span class="blue">✓✓</span>'; });
+socket.on('typing',({from,name})=>{ if(selectedUser && selectedUser.id===from){ typingEl.innerText=name+' typing...'; setTimeout(()=>typingEl.innerText='',2000);} });
+function send(){
+  const text=msgInput.value.trim(); if(!text &&!window.pendingImage) return;
+  const msgId='m_'+Date.now(); const data={msgId,text,from:myId,to:selectedUser?.id||'all',fromName:myName,image:window.pendingImage||null,audio:null,status:'✓'};
+  const div=document.createElement('div'); div.className='bubble me'; div.id=msgId;
+  let c=''; if(data.image) c+=`<img src="${data.image}" style="max-width:100%;border-radius:8px"><br>`;
+  c+=`<span>${data.text}</span>`; const time=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  div.innerHTML=c+`<div class="meta">${time} <span class="tick">✓</span></div>`;
+  chatBox.appendChild(div); chatBox.scrollTop=chatBox.scrollHeight;
+  socket.emit('send',data); msgInput.value=''; window.pendingImage=null;
+}
+document.getElementById('sendBtn').onclick=send;
+msgInput.addEventListener('keypress',e=>{ if(e.key==='Enter') send(); socket.emit('typing',{to:selectedUser?.id,from:myId,name:myName}); });
+document.getElementById('fileInput').onchange=e=>{
+  const file=e.target.files[0]; if(!file) return;
+  const r=new FileReader(); r.onload=()=>{window.pendingImage=r.result; msgInput.value='📷 Photo'; msgInput.focus();}; r.readAsDataURL(file);
+};
+document.getElementById('voiceBtn').onclick=async()=>{
+  if(!isRecording){
+    try{
+      const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+      mediaRecorder=new MediaRecorder(stream); audioChunks=[];
+      mediaRecorder.ondataavailable=e=>audioChunks.push(e.data);
+      mediaRecorder.onstop=()=>{
+        const blob=new Blob(audioChunks,{type:'audio/webm'});
+        const r=new FileReader(); r.onload=()=>{
+          const msgId='m_'+Date.now(); const data={msgId,text:'',audio:r.result,from:myId,to:selectedUser?.id||'all',fromName:myName,status:'✓'};
+          const div=document.createElement('div'); div.className='bubble me'; div.id=msgId;
+          div.innerHTML=`<audio controls src="${data.audio}" style="max-width:200px"></audio><div class="meta">${new Date().toLocaleTimeString()} <span class="tick">✓</span></div>`;
+          chatBox.appendChild(div); chatBox.scrollTop=chatBox.scrollHeight; socket.emit('send',data);
+        }; r.readAsDataURL(blob);
+      };
+      mediaRecorder.start(); isRecording=true;
+      document.getElementById('voiceBtn').innerText='⏹️'; document.getElementById('voiceBtn').style.background='red';
+    }catch{ alert('Mic permission do'); }
+  }else{ mediaRecorder.stop(); isRecording=false; document.getElementById('voiceBtn').innerText='🎤'; document.getElementById('voiceBtn').style.background='#00a884'; }
+};
+document.getElementById('usersBtn').onclick=()=>{
+  const d=document.getElementById('users'); d.style.display=d.style.display==='none'?'block':'none';
+};
+if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js');}
 </script>
 </body>
 </html>
