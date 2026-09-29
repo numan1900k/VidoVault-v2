@@ -3,7 +3,10 @@
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>WhatsApp</title>
+  <link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#00a884">
 <script src="/socket.io/socket.io.js"></script>
+  <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js')}</script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family: Segoe UI,Roboto}
 body{background:#111b21;height:100dvh;overflow:hidden}
