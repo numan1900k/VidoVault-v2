@@ -6,99 +6,85 @@ const path = require('path');
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-let users = {};
-let statuses = [];
-let groups = {};
+let users = {}; // id -> {id,name,username,dp,socketId,online}
 
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
+app.get('/', (req,res)=> res.sendFile(path.join(__dirname,'public','index.html')));
+app.get('/clear', (req,res)=>{ users={}; res.send('cleared all ✅ ab sab username free hai'); });
 
-app.get('/clear', (req,res)=>{
-  users={};
-  res.send('All cleared - ab sab username available hai ✅');
-});
-
-function isUsernameTaken(uname, myId){
-  if(!uname) return false;
-  uname = uname.toLowerCase().trim();
-  return Object.values(users).some(u =>
-    u.username?.toLowerCase().trim() === uname &&
-    u.id!== myId &&
-    u.online === true
-  );
+function isTaken(name, myId){
+  name=name.toLowerCase().trim();
+  return Object.values(users).some(u=> u.username.toLowerCase()===name && u.id!==myId && u.online);
 }
 
-io.on('connection', (socket) => {
+io.on('connection', (socket)=>{
 
-  socket.on('checkUsername', (q)=>{
-    let taken = isUsernameTaken(q.q, q.myId);
-    socket.emit('checkResult', {available:!taken});
+  socket.on('checkUsername', ({q, myId})=>{
+    socket.emit('checkResult', {q, available:!isTaken(q, myId)});
   });
 
-  socket.on('join', (data) => {
-    if(!data.username) data.username = data.id;
+  socket.on('join', (data)=>{
     data.username = data.username.toLowerCase().trim();
-    if(isUsernameTaken(data.username, data.id)){
-      socket.emit('usernameTaken');
-      return;
+    if(isTaken(data.username, data.id)){
+      return socket.emit('usernameTaken');
     }
-    // same username ka offline user ho to hata do
-    Object.keys(users).forEach(k=>{
-      if(users[k].username === data.username && k!== data.id){
-        delete users[k];
-      }
-    });
-    users[data.id] = {...data, socketId: socket.id, online: true };
+    // same username ka purana offline delete
+    Object.keys(users).forEach(k=>{ if(users[k].username===data.username && k!==data.id) delete users[k]; });
+
+    users[data.id] = { id:data.id, name:data.name, username:data.username, dp:data.dp, socketId:socket.id, online:true };
     socket.userId = data.id;
-    io.emit('users', Object.values(users));
     socket.emit('joinOk', users[data.id]);
-  });
-
-  socket.on('updateProfile', (data)=>{
-    data.username = data.username.toLowerCase().trim();
-    if(isUsernameTaken(data.username, data.id)){
-      socket.emit('usernameTaken');
-      return;
-    }
-    Object.keys(users).forEach(k=>{
-      if(users[k].username === data.username && k!== data.id) delete users[k];
-    });
-    if(users[data.id]){
-      users[data.id] = {...users[data.id],...data, socketId: users[data.id].socketId, online:true };
-      io.emit('users', Object.values(users));
-      socket.emit('profileUpdated', users[data.id]);
-    }
+    io.emit('users', Object.values(users));
+    console.log('JOINED:', data.username, 'Total:', Object.keys(users).length);
   });
 
   socket.on('searchUser', (q)=>{
-    q=q.toLowerCase();
-    let res=Object.values(users).filter(u=> u.online && (u.username?.includes(q) || u.name?.toLowerCase().includes(q))).slice(0,10);
+    q=q.toLowerCase().trim();
+    if(!q) return;
+    // saare users me search, online/offline dono
+    let res = Object.values(users).filter(u=> u.username.includes(q) || u.name.toLowerCase().includes(q)).slice(0,20);
     socket.emit('searchResult', res);
   });
 
-  socket.on('send', (data) => {
-    const target = users[data.to] || Object.values(users).find(u=>u.username===data.to);
-    if(target) io.to(target.socketId).emit('receive', data);
-    else socket.broadcast.emit('receive', data);
+  socket.on('send', (data)=>{
+    // data = {msgId,text,from,to,time}
+    let target = users[data.to];
+    if(!target){
+      // username se bhi dhoondo
+      target = Object.values(users).find(u=>u.username===data.to);
+    }
+    if(target && target.socketId){
+      io.to(target.socketId).emit('receive', data);
+      // sender ko delivered tick bhejo
+      socket.emit('delivered', {msgId: data.msgId});
+    }
   });
 
-  socket.on('groupMsg', (data) => io.emit('groupMsg', data));
-  socket.on('deleteMsg', (data) => io.emit('deleteMsg', data));
-  socket.on('typing', (d) => socket.broadcast.emit('typing', d));
-
-  socket.on('updateDP', (data) => {
-    if (users[data.id]) users[data.id].dp = data.dp;
-    io.emit('users', Object.values(users));
+  socket.on('updateProfile', (data)=>{
+    data.username=data.username.toLowerCase().trim();
+    if(isTaken(data.username, data.id)) return socket.emit('usernameTaken');
+    Object.keys(users).forEach(k=>{ if(users[k].username===data.username && k!==data.id) delete users[k]; });
+    if(users[data.id]){
+      users[data.id] = {...users[data.id], name:data.name, username:data.username, dp:data.dp, socketId: users[data.id].socketId, online:true};
+      socket.emit('profileUpdated', users[data.id]);
+      io.emit('users', Object.values(users));
+    }
   });
 
-  socket.on('disconnect', () => {
-    if (socket.userId && users[socket.userId]) {
-      users[socket.userId].online = false;
+  socket.on('deleteMsg', (d)=> io.emit('deleteMsg', d));
+  socket.on('typing', (d)=>{
+    let target = users[d.to];
+    if(target) io.to(target.socketId).emit('typing', {from:d.from});
+  });
+
+  socket.on('disconnect', ()=>{
+    if(socket.userId && users[socket.userId]){
+      users[socket.userId].online=false;
+      // 10 sec baad offline ko list se hata do taaki search clean rahe
+      setTimeout(()=>{ if(users[socket.userId] &&!users[socket.userId].online) delete users[socket.userId]; }, 10000);
       io.emit('users', Object.values(users));
     }
   });
 });
 
 const PORT = process.env.PORT || 3000;
-http.listen(PORT, () => console.log('WhatsApp Running on ' + PORT));
+http.listen(PORT, ()=> console.log('Running '+PORT));
