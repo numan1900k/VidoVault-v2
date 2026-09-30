@@ -1,50 +1,129 @@
 <!DOCTYPE html>
-<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Pi Chat</title>
-<style>*{margin:0;padding:0;box-sizing:border-box;font-family:sans-serif}body{background:#111b21;color:#fff;height:100vh;display:flex;flex-direction:column}header{background:#202c33;padding:10px 12px;display:flex;justify-content:space-between;align-items:center}#list{flex:1;overflow:auto}.item{display:flex;gap:12px;padding:12px;border-bottom:1px solid #1f2c34;cursor:pointer}.item img{width:50px;height:50px;border-radius:50%}.top{display:flex;justify-content:space-between;width:100%}.last{font-size:13px;opacity:.6}.time{font-size:11px;opacity:.5}#chatView{flex:1;display:none;flex-direction:column;background:#0b141a}#chat{flex:1;overflow:auto;padding:10px;display:flex;flex-direction:column;gap:6px}.m{max-width:78%;padding:8px 10px;border-radius:8px}.me{align-self:flex-end;background:#005c4b}.ot{align-self:flex-start;background:#202c33}.m img{max-width:200px;border-radius:8px}.input{background:#202c33;padding:8px;display:flex;gap:6px;align-items:center}.input input{flex:1;padding:12px;border-radius:20px;border:none;background:#2a3942;color:#fff;outline:none}button{border:none;background:#00a884;color:#fff;border-radius:50%;width:42px;height:42px;cursor:pointer}#login{position:fixed;inset:0;background:#111b21;display:flex;align-items:center;justify-content:center;z-index:100}.card{background:#202c33;padding:20px;border-radius:12px;width:92%;max-width:340px}.card input{width:100%;padding:12px;margin:6px 0;border-radius:8px;border:none;background:#2a3942;color:#fff}#fab{position:fixed;bottom:20px;right:20px;width:56px;height:56px;border-radius:50%;font-size:28px;background:#00a884}.hidden{display:none!important}#settings{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:60;display:none;align-items:center;justify-content:center}#viewer{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:70;display:none;align-items:center;justify-content:center}#callBox{position:fixed;inset:0;background:#111b21;z-index:50;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px}video{width:90%;max-width:400px;background:#000;border-radius:12px}</style></head><body>
-<div id="login"><div class="card"><h2 style="color:#00a884;text-align:center">Pi Chat</h2><input id="name" placeholder="Full Name (naya hai to)"><input id="username" placeholder="username - Hassankhan123"><input id="password" type="password" placeholder="Password"><button style="width:100%;border-radius:8px;height:45px;margin-top:10px" id="authBtn" onclick="doAuth()">Login / Register</button><p id="err" style="color:#ff6b6b;text-align:center;margin-top:8px;font-size:13px"></p><p style="text-align:center;opacity:.5;font-size:12px;margin-top:8px">Naya hai to Name bhar, purana hai to Name khali chhod</p></div></div>
-<div id="newBox" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:40;display:flex;align-items:center;justify-content:center"><div class="card"><h3>New Chat</h3><input id="q" placeholder="search username" oninput="if(window.socket) socket.emit('searchUser',this.value)"><div id="res"></div><button style="width:100%;background:transparent;color:#aaa;margin-top:10px" onclick="document.getElementById('newBox').classList.add('hidden')">Close</button></div></div>
-<div id="settings" onclick="if(event.target==this)this.style.display='none'"><div class="card"><h3>Settings</h3><img id="setDP" style="width:80px;height:80px;border-radius:50%;display:block;margin:10px auto"><input id="setName"><input type="file" id="dpFile" accept="image/*" style="margin:8px 0"><button style="width:100%;border-radius:8px;height:40px" onclick="saveSettings()">Save</button></div></div>
+<html>
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pi Chat</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:sans-serif}
+body{background:#111b21;color:#fff;height:100vh;display:flex;flex-direction:column}
+header{background:#202c33;padding:10px 12px;display:flex;justify-content:space-between;align-items:center}
+#list{flex:1;overflow:auto}
+.item{display:flex;gap:12px;padding:12px;border-bottom:1px solid #1f2c34;cursor:pointer}
+.item img{width:50px;height:50px;border-radius:50%}
+.top{display:flex;justify-content:space-between;width:100%}
+.last{font-size:13px;opacity:.6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.time{font-size:11px;opacity:.5}
+#chatView{flex:1;display:none;flex-direction:column;background:#0b141a}
+#chat{flex:1;overflow:auto;padding:10px;display:flex;flex-direction:column;gap:6px}
+.m{max-width:78%;padding:8px 10px;border-radius:8px;word-break:break-word}
+.me{align-self:flex-end;background:#005c4b}
+.ot{align-self:flex-start;background:#202c33}
+.m img{max-width:200px;border-radius:8px;display:block}
+.input{background:#202c33;padding:8px;display:flex;gap:6px;align-items:center}
+.input input{flex:1;padding:12px;border-radius:20px;border:none;background:#2a3942;color:#fff;outline:none}
+button{border:none;background:#00a884;color:#fff;border-radius:50%;width:42px;height:42px;cursor:pointer}
+#login{position:fixed;inset:0;background:#111b21;display:flex;align-items:center;justify-content:center;z-index:100}
+.card{background:#202c33;padding:20px;border-radius:12px;width:92%;max-width:340px}
+.card input{width:100%;padding:12px;margin:6px 0;border-radius:8px;border:none;background:#2a3942;color:#fff}
+#fab{position:fixed;bottom:20px;right:20px;width:56px;height:56px;border-radius:50%;font-size:28px;background:#00a884}
+.hidden{display:none!important}
+#settings{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:60;display:none;align-items:center;justify-content:center}
+#viewer{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:70;display:none;align-items:center;justify-content:center}
+#callBox{position:fixed;inset:0;background:#111b21;z-index:50;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+video{width:90%;max-width:400px;background:#000;border-radius:12px}
+</style>
+</head>
+<body>
+
+<div id="login"><div class="card">
+<h2 style="color:#00a884;text-align:center;margin-bottom:10px">Pi Chat</h2>
+<input id="name" placeholder="Full Name (sirf naye user ke liye)">
+<input id="username" placeholder="username">
+<input id="password" type="password" placeholder="Password">
+<button style="width:100%;border-radius:8px;height:45px;margin-top:10px" id="authBtn" onclick="doAuth()">Login / Register</button>
+<p id="err" style="color:#ff6b6b;text-align:center;margin-top:8px;font-size:13px"></p>
+<p style="text-align:center;opacity:.5;font-size:11px;margin-top:8px">Naya hai to Name bhar, purana hai to Name khali chhod</p>
+</div></div>
+
+<div id="newBox" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:40;display:flex;align-items:center;justify-content:center">
+<div class="card"><h3>New Chat</h3><input id="q" placeholder="search username" oninput="if(window.socket) socket.emit('searchUser',this.value)"><div id="res" style="max-height:300px;overflow:auto;margin-top:10px"></div><button style="width:100%;background:transparent;color:#aaa;margin-top:10px" onclick="document.getElementById('newBox').classList.add('hidden')">Close</button></div>
+</div>
+
+<div id="settings" onclick="if(event.target==this)this.style.display='none'"><div class="card">
+<h3>Settings</h3><img id="setDP" style="width:80px;height:80px;border-radius:50%;display:block;margin:10px auto">
+<input id="setName" placeholder="New Name"><input type="file" id="dpFile" accept="image/*" style="margin:8px 0">
+<button style="width:100%;border-radius:8px;height:40px" onclick="saveSettings()">Save</button>
+<button style="width:100%;background:transparent;color:#aaa;margin-top:8px" onclick="document.getElementById('settings').style.display='none'">Close</button>
+</div></div>
+
 <div id="viewer" onclick="this.style.display='none'"><img id="big" style="max-width:95%;max-height:95%"></div>
-<div id="callBox"><h2 id="callStatus">Calling...</h2><video id="remote" autoplay playsinline></video><video id="local" autoplay muted playsinline style="width:120px;position:absolute;bottom:100px;right:20px"></video><div style="display:flex;gap:12px"><button style="background:red" onclick="endCall()">✕</button></div></div>
-<header><div style="display:flex;align-items:center;gap:10px;cursor:pointer" onclick="document.getElementById('settings').style.display='flex'"><img id="myDP" style="width:42px;height:42px;border-radius:50%"><div><b id="myName"></b><div id="myU" style="font-size:11px;opacity:.6"></div></div></div><div style="display:flex;gap:8px"><button style="background:transparent" onclick="document.getElementById('settings').style.display='flex'">⚙️</button><button style="background:transparent" onclick="localStorage.clear();location.reload()">Logout</button></div></header>
+<div id="callBox"><h2 id="callStatus">Calling...</h2><video id="remote" autoplay playsinline></video><video id="local" autoplay muted playsinline style="width:120px;position:absolute;bottom:100px;right:20px;border-radius:8px"></video><button style="background:red" onclick="endCall()">✕ Cut</button></div>
+
+<header>
+<div style="display:flex;align-items:center;gap:10px;cursor:pointer" onclick="document.getElementById('settings').style.display='flex'"><img id="myDP" style="width:42px;height:42px;border-radius:50%"><div><b id="myName"></b><div id="myU" style="font-size:11px;opacity:.6"></div></div></div>
+<div style="display:flex;gap:8px"><button style="background:transparent;font-size:20px" onclick="document.getElementById('settings').style.display='flex'">⚙️</button><button style="background:transparent" onclick="localStorage.clear();location.reload()">Logout</button></div>
+</header>
+
 <div id="list"></div>
-<div id="chatView"><div style="background:#202c33;padding:10px;display:flex;justify-content:space-between;align-items:center"><div style="display:flex;gap:8px;align-items:center"><button onclick="showList()" style="background:transparent">←</button><img id="cDP" style="width:36px;height:36px;border-radius:50%"><b id="cName"></b></div><div><button style="background:transparent" onclick="startCall(false)">📞</button><button style="background:transparent" onclick="startCall(true)">📹</button></div></div><div id="chat"></div><div class="input"><button onclick="document.getElementById('f').click()">📎</button><input type="file" id="f" accept="image/*" style="display:none"><input id="msg" placeholder="Message"><button onclick="sendMsg()">➤</button></div></div>
+
+<div id="chatView">
+<div style="background:#202c33;padding:10px;display:flex;justify-content:space-between;align-items:center"><div style="display:flex;gap:8px;align-items:center"><button onclick="showList()" style="background:transparent">←</button><img id="cDP" style="width:36px;height:36px;border-radius:50%"><b id="cName"></b></div><div style="display:flex;gap:6px"><button style="background:transparent" onclick="startCall(false)">📞</button><button style="background:transparent" onclick="startCall(true)">📹</button></div></div>
+<div id="chat"></div>
+<div class="input"><button onclick="document.getElementById('f').click()">📎</button><input type="file" id="f" accept="image/*" style="display:none"><input id="msg" placeholder="Message"><button onclick="sendMsg()">➤</button></div>
+</div>
+
 <button id="fab" onclick="document.getElementById('newBox').classList.remove('hidden');document.getElementById('newBox').style.display='flex'">+</button>
 <audio id="notif" src="https://cdn.pixabay.com/audio/2022/03/15/audio_c8c8a73467.mp3"></audio>
+
 <script src="/socket.io/socket.io.js"></script>
 <script>
 let socket=null; try{socket=io();}catch(e){}
 let my=JSON.parse(localStorage.getItem('wa_user')||'null'), sel=null, chats=JSON.parse(localStorage.getItem('wa_chats')||'{}'), usersCache={};
 if(Notification && Notification.permission!=="granted") Notification.requestPermission();
-if(my){ document.getElementById('login').classList.add('hidden'); document.getElementById('myName').innerText=my.name; document.getElementById('myU').innerText='@'+my.username; document.getElementById('myDP').src=my.dp; if(socket) socket.emit('join',my); }
+if(my){ document.getElementById('login').classList.add('hidden'); document.getElementById('myName').innerText=my.name; document.getElementById('myU').innerText='@'+my.username; document.getElementById('myDP').src=my.dp; document.getElementById('setDP').src=my.dp; document.getElementById('setName').value=my.name; if(socket) socket.emit('join',my); }
 
 function doAuth(){
  let n=document.getElementById('name').value.trim(), u=document.getElementById('username').value.trim().toLowerCase(), p=document.getElementById('password').value.trim();
  let err=document.getElementById('err'), btn=document.getElementById('authBtn');
- if(!u||!p){ err.innerText='Username aur password bhar'; return; }
+ if(!u||!p){ err.innerText='Username aur password bharo'; return; }
  btn.innerText='Wait...'; err.innerText='';
- let id='u_'+(my?my.id.replace('u_',''):Date.now()); if(my && my.username===u) id=my.id;
- let dp=my?.dp || `https://i.pravatar.cc/150?u=${u}`;
- let userData={id:id,name:n||my?.name||u,username:u,password:p,dp:dp};
- // Try server auth if available, but don't wait
  if(socket && socket.connected){
-   if(n) socket.emit('register',{name:userData.name,username:u,password:p});
+   if(n) socket.emit('register',{name:n,username:u,password:p});
    else socket.emit('login',{username:u,password:p});
-   setTimeout(()=>{ if(!my) finishLogin(userData); },1500);
- } else { finishLogin(userData); }
+ } else {
+   let userData={id:'u_'+Date.now(),name:n||u,username:u,password:p,dp:`https://i.pravatar.cc/150?u=${u}`};
+   finishLogin(userData);
+ }
 }
 function finishLogin(u){ my=u; localStorage.setItem('wa_user',JSON.stringify(u)); document.getElementById('login').classList.add('hidden'); document.getElementById('myName').innerText=u.name; document.getElementById('myU').innerText='@'+u.username; document.getElementById('myDP').src=u.dp; document.getElementById('setDP').src=u.dp; document.getElementById('setName').value=u.name; if(socket) socket.emit('join',u); renderList(); }
-if(socket){ socket.on('authOk',u=>{ finishLogin({...u,password:document.getElementById('password').value.trim()}); }); socket.on('authError',m=>{ document.getElementById('err').innerText=m+' (phir bhi local login kar raha hu)'; let u=document.getElementById('username').value.trim().toLowerCase(); let n=document.getElementById('name').value.trim(); if(u){ finishLogin({id:'u_'+Date.now(),name:n||u,username:u,password:document.getElementById('password').value.trim(),dp:`https://i.pravatar.cc/150?u=${u}`}); } }); socket.on('users',list=>{ list.forEach(x=>usersCache[x.id]=x); renderList(); }); socket.on('searchResult',list=>{ let box=document.getElementById('res'); box.innerHTML=''; list.forEach(x=>{ usersCache[x.id]=x; let d=document.createElement('div'); d.className='item'; d.innerHTML=`<img src="${x.dp}"><div><b>${x.name}</b><div class="last">@${x.username}</div></div>`; d.onclick=()=>{ openChat(x); document.getElementById('newBox').classList.add('hidden'); }; box.appendChild(d); }); }); socket.on('receive',onReceive); }
-
-function renderList(){ let el=document.getElementById('list'); el.innerHTML=''; let arr=Object.values(usersCache).filter(u=>u.id!==my.id); if(!arr.length && Object.keys(chats).length===0){ el.innerHTML='<p style="text-align:center;margin-top:60px;opacity:.4">No chats<br>+ dabake search karo</p>'; return; } arr.sort((a,b)=>{ let ta=chats[a.id]?chats[a.id][chats[a.id].length-1]?.time:0; let tb=chats[b.id]?chats[b.id][chats[b.id].length-1]?.time:0; return tb-ta; }); arr.forEach(u=>{ let last=chats[u.id]?.[chats[u.id].length-1]; let txt=last? (last.file?'📎 Photo':last.text) : 'Tap to chat'; let tm=last? new Date(last.time).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):''; let d=document.createElement('div'); d.className='item'; d.innerHTML=`<img src="${u.dp}"><div style="flex:1"><div class="top"><b>${u.name}</b><span class="time">${tm}</span></div><div class="last">${txt}</div></div>`; d.onclick=()=>openChat(u); el.appendChild(d); }); }
+if(socket){
+ socket.on('authOk',u=>finishLogin(u));
+ socket.on('authError',m=>{ document.getElementById('err').innerText=m; document.getElementById('authBtn').innerText='Login / Register'; });
+ socket.on('users',list=>{ list.forEach(x=>usersCache[x.id]=x); renderList(); });
+ socket.on('searchResult',list=>{ let box=document.getElementById('res'); box.innerHTML=''; list.forEach(x=>{ usersCache[x.id]=x; let d=document.createElement('div'); d.className='item'; d.innerHTML=`<img src="${x.dp}"><div><b>${x.name}</b><div class="last">@${x.username}</div></div>`; d.onclick=()=>{ openChat(x); document.getElementById('newBox').classList.add('hidden'); }; box.appendChild(d); }); });
+ socket.on('receive',onReceive);
+}
+function renderList(){ let el=document.getElementById('list'); el.innerHTML=''; let arr=Object.values(usersCache).filter(u=>u.id!==my.id); if(arr.length===0){ el.innerHTML='<p style="text-align:center;margin-top:60px;opacity:.4">+ dabake naya chat search karo</p>'; return; } arr.sort((a,b)=>{ let ta=chats[a.id]?chats[a.id][chats[a.id].length-1]?.time:0; let tb=chats[b.id]?chats[b.id][chats[b.id].length-1]?.time:0; return tb-ta; }); arr.forEach(u=>{ let last=chats[u.id]?.[chats[u.id].length-1]; let txt=last? (last.file?'📎 Photo':last.text) : 'Tap to chat'; let tm=last? new Date(last.time).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):''; let d=document.createElement('div'); d.className='item'; d.innerHTML=`<img src="${u.dp}"><div style="flex:1"><div class="top"><b>${u.name}</b><span class="time">${tm}</span></div><div class="last">${txt}</div></div>`; d.onclick=()=>openChat(u); el.appendChild(d); }); }
 function showList(){ document.getElementById('chatView').style.display='none'; document.getElementById('list').style.display='block'; document.getElementById('fab').style.display='block'; }
 function openChat(u){ sel=u; document.getElementById('cName').innerText=u.name; document.getElementById('cDP').src=u.dp; document.getElementById('list').style.display='none'; document.getElementById('chatView').style.display='flex'; document.getElementById('fab').style.display='none'; let c=document.getElementById('chat'); c.innerHTML=''; (chats[u.id]||[]).forEach(m=>addBubble(m,m.from===my.id?'me':'ot',false)); }
 function addBubble(d,type,save){ let c=document.getElementById('chat'); let div=document.createElement('div'); div.className='m '+type; let h=''; if(d.file) h+=`<img src="${d.file}" onclick="document.getElementById('big').src=this.src; document.getElementById('viewer').style.display='flex'">`; h+=`${d.text||''}<div style="font-size:10px;opacity:.5;text-align:right">${new Date(d.time).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</div>`; div.innerHTML=h; c.appendChild(div); c.scrollTop=c.scrollHeight; if(save){ if(!chats[sel.id]) chats[sel.id]=[]; chats[sel.id].push(d); localStorage.setItem('wa_chats',JSON.stringify(chats)); } }
 function sendMsg(){ let t=document.getElementById('msg').value.trim(); if(!t||!sel) return; let data={msgId:'m_'+Date.now(),text:t,from:my.id,to:sel.id,time:Date.now()}; addBubble(data,'me',true); if(socket) socket.emit('send',data); document.getElementById('msg').value=''; renderList(); }
-function onReceive(data){ if(!chats[data.from]) chats[data.from]=[]; chats[data.from].push(data); localStorage.setItem('wa_chats',JSON.stringify(chats)); if(sel && sel.id===data.from) addBubble(data,'ot',false); else { try{document.getElementById('notif').play();}catch(e){} if(Notification.permission==="granted") new Notification(usersCache[data.from]?.name||'New message',{body:data.file?'Photo':data.text}); renderList(); } }
+function onReceive(data){ if(!chats[data.from]) chats[data.from]=[]; chats[data.from].push(data); localStorage.setItem('wa_chats',JSON.stringify(chats)); if(sel && sel.id===data.from) addBubble(data,'ot',false); else { try{document.getElementById('notif').play();}catch(e){} if(Notification.permission==="granted") new Notification(usersCache[data.from]?.name||'New message',{body:data.file?'Photo':data.text, icon:usersCache[data.from]?.dp}); renderList(); } }
 document.getElementById('msg').addEventListener('keypress',e=>{ if(e.key==='Enter') sendMsg(); });
 document.getElementById('f').addEventListener('change',e=>{ let file=e.target.files[0]; if(!file||!sel) return; let r=new FileReader(); r.onload=()=>{ let data={msgId:'m_'+Date.now(),text:file.name,file:r.result,from:my.id,to:sel.id,time:Date.now()}; addBubble(data,'me',true); if(socket) socket.emit('send',data); renderList(); }; r.readAsDataURL(file); e.target.value=''; });
 function saveSettings(){ let nm=document.getElementById('setName').value.trim(); let file=document.getElementById('dpFile').files[0]; if(file){ let r=new FileReader(); r.onload=()=>{ my.dp=r.result; my.name=nm||my.name; localStorage.setItem('wa_user',JSON.stringify(my)); if(socket) socket.emit('updateProfile',{id:my.id,name:my.name,dp:my.dp}); document.getElementById('myDP').src=my.dp; document.getElementById('settings').style.display='none'; }; r.readAsDataURL(file); } else { my.name=nm||my.name; localStorage.setItem('wa_user',JSON.stringify(my)); if(socket) socket.emit('updateProfile',{id:my.id,name:my.name}); document.getElementById('myName').innerText=my.name; document.getElementById('settings').style.display='none'; } }
-let localStream,peer; async function startCall(video){ if(!sel) return; document.getElementById('callBox').style.display='flex'; document.getElementById('callStatus').innerText='Calling...'; localStream=await navigator.mediaDevices.getUserMedia({audio:true,video:video}); document.getElementById('local').srcObject=localStream; peer=new RTCPeerConnection(); localStream.getTracks().forEach(t=>peer.addTrack(t,localStream)); peer.ontrack=e=>document.getElementById('remote').srcObject=e.streams[0]; peer.onicecandidate=e=>{ if(e.candidate && socket) socket.emit('ice',{to:sel.id,candidate:e.candidate}); }; let offer=await peer.createOffer(); await peer.setLocalDescription(offer); if(socket) socket.emit('call',{to:sel.id,from:my.id,offer,type:video?'video':'audio'}); } if(socket){ socket.on('incomingCall',async({from,offer,type})=>{ let ok=confirm((usersCache[from]?.name||'Someone')+' calling... Accept?'); if(!ok){ socket.emit('endCall',{to:from}); return; } sel=usersCache[from]||{id:from,name:'User'}; openChat(sel); document.getElementById('callBox').style.display='flex'; localStream=await navigator.mediaDevices.getUserMedia({audio:true,video:type==='video'}); document.getElementById('local').srcObject=localStream; peer=new RTCPeerConnection(); localStream.getTracks().forEach(t=>peer.addTrack(t,localStream)); peer.ontrack=e=>document.getElementById('remote').srcObject=e.streams[0]; peer.onicecandidate=e=>{ if(e.candidate) socket.emit('ice',{to:from,candidate:e.candidate}); }; await peer.setRemoteDescription(offer); let ans=await peer.createAnswer(); await peer.setLocalDescription(ans); socket.emit('answer',{to:from,answer:ans}); }); socket.on('callAnswered',async({answer})=>{ await peer.setRemoteDescription(answer); document.getElementById('callStatus').innerText='Connected'; }); socket.on('ice',async({candidate})=>{ if(peer) await peer.addIceCandidate(candidate); }); socket.on('callEnded',()=>endCall()); } function endCall(){ if(peer){ peer.close(); peer=null; } if(localStream){ localStream.getTracks().forEach(t=>t.stop()); } document.getElementById('callBox').style.display='none'; if(socket && sel) socket.emit('endCall',{to:sel.id}); }
+let localStream,peer; async function startCall(video){ if(!sel) return; document.getElementById('callBox').style.display='flex'; document.getElementById('callStatus').innerText='Calling...'; try{ localStream=await navigator.mediaDevices.getUserMedia({audio:true,video:video}); }catch(e){ alert('Mic/Camera permission do'); return; } document.getElementById('local').srcObject=localStream; peer=new RTCPeerConnection(); localStream.getTracks().forEach(t=>peer.addTrack(t,localStream)); peer.ontrack=e=>document.getElementById('remote').srcObject=e.streams[0]; peer.onicecandidate=e=>{ if(e.candidate && socket) socket.emit('ice',{to:sel.id,candidate:e.candidate}); }; let offer=await peer.createOffer(); await peer.setLocalDescription(offer); if(socket) socket.emit('call',{to:sel.id,from:my.id,offer,type:video?'video':'audio'}); }
+if(socket){
+ socket.on('incomingCall',async({from,offer,type})=>{
+  let ok=confirm((usersCache[from]?.name||'Someone')+' ka call hai. Accept kare?'); if(!ok){ socket.emit('endCall',{to:from}); return; }
+  sel=usersCache[from]||{id:from,name:'User'}; openChat(sel); document.getElementById('callBox').style.display='flex'; localStream=await navigator.mediaDevices.getUserMedia({audio:true,video:type==='video'}); document.getElementById('local').srcObject=localStream; peer=new RTCPeerConnection(); localStream.getTracks().forEach(t=>peer.addTrack(t,localStream)); peer.ontrack=e=>document.getElementById('remote').srcObject=e.streams[0]; peer.onicecandidate=e=>{ if(e.candidate) socket.emit('ice',{to:from,candidate:e.candidate}); }; await peer.setRemoteDescription(offer); let ans=await peer.createAnswer(); await peer.setLocalDescription(ans); socket.emit('answer',{to:from,answer:ans});
+ });
+ socket.on('callAnswered',async({answer})=>{ if(peer) await peer.setRemoteDescription(answer); document.getElementById('callStatus').innerText='Connected'; });
+ socket.on('ice',async({candidate})=>{ if(peer) try{await peer.addIceCandidate(candidate);}catch(e){} });
+ socket.on('callEnded',()=>endCall());
+}
+function endCall(){ if(peer){ peer.close(); peer=null; } if(localStream){ localStream.getTracks().forEach(t=>t.stop()); localStream=null; } document.getElementById('callBox').style.display='none'; if(socket && sel) socket.emit('endCall',{to:sel.id}); }
 renderList();
-</script></body></html>
+</script>
+</body>
+</html>
