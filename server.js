@@ -46,7 +46,9 @@ io.on('connection', (socket) => {
   socket.on('groupMsg', (data) => {
     io.emit('groupMsg', data);
   });
-
+  socket.on('deleteMsg', (data) => {
+    io.emit('deleteMsg', data);
+  });
   socket.on('delivered', (d) => io.emit('delivered', d));
   socket.on('seen', (d) => io.emit('seen', d));
   socket.on('typing', (d) => socket.broadcast.emit('typing', d));
