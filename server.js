@@ -15,6 +15,15 @@ app.get('/', (req, res) => {
 });
 
 function isUsernameTaken(uname, myId){
+  if(!uname) return false;
+  uname = uname.toLowerCase().trim();
+  // sirf ONLINE users ko check karo, offline ko ignore karo
+  return Object.values(users).some(u=>
+    u.username?.toLowerCase().trim() === uname &&
+    u.id!== myId &&
+    u.online === true
+  );
+}
   uname = uname.toLowerCase();
   return Object.values(users).some(u=> u.username?.toLowerCase()===uname && u.id!==myId);
 }
