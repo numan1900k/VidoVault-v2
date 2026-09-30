@@ -2,158 +2,174 @@
 <html>
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>WhatsApp</title>
+<title>WhatsApp Final</title>
 <style>
-:root{--g:#00a884;--bg:#111b21;--h:#202c33;--b1:#005c4b;--b2:#202c33}
+:root{--g:#00a884;--bg:#111b21;--h:#202c33}
 *{margin:0;padding:0;box-sizing:border-box;font-family:sans-serif}
-body{background:var(--bg);color:#e9edef;height:100vh;display:flex;flex-direction:column}
+body{background:var(--bg);color:#fff;height:100vh;display:flex;flex-direction:column}
 header{background:var(--h);padding:10px;display:flex;justify-content:space-between;align-items:center}
-#dp{width:40px;height:40px;border-radius:50%;object-fit:cover}
+#dp{width:40px;height:40px;border-radius:50%}
 #chat{flex:1;overflow:auto;padding:10px;display:flex;flex-direction:column;gap:6px;background:#0b141a}
 .b{max-width:75%;padding:8px 10px;border-radius:8px;word-break:break-word}
-.me{align-self:flex-end;background:var(--b1)}.ot{align-self:flex-start;background:var(--b2)}
+.me{align-self:flex-end;background:#005c4b}.ot{align-self:flex-start;background:#202c33}
 .meta{font-size:10px;opacity:.6;text-align:right}
 .input{background:var(--h);padding:8px;display:flex;gap:8px}
-.input input{flex:1;padding:11px;border-radius:22px;border:none;background:#2a3942;color:#fff;outline:none}
-.bt{width:40px;height:40px;border-radius:50%;border:none;background:var(--g);color:#fff;font-size:18px;cursor:pointer}
-#fab{position:fixed;bottom:80px;right:18px;width:56px;height:56px;border-radius:50%;background:var(--g);color:#fff;font-size:28px;border:none;z-index:10}
+.input input{flex:1;padding:12px;border-radius:22px;border:none;background:#2a3942;color:#fff;outline:none}
+.bt{width:42px;height:42px;border-radius:50%;border:none;background:var(--g);color:#fff;font-size:18px;cursor:pointer}
+#fab{position:fixed;bottom:85px;right:18px;width:58px;height:58px;border-radius:50%;background:var(--g);color:#fff;font-size:30px;border:none;z-index:10}
 #settings,#newChatBox{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;padding:16px;z-index:50}
 .sheet{background:var(--h);width:100%;max-width:360px;border-radius:16px;padding:18px}
-.sheet input{width:100%;padding:12px;border-radius:8px;border:none;background:#2a3942;color:#fff;margin:8px 0;outline:none}
-.sheet img{width:90px;height:90px;border-radius:50%;object-fit:cover;display:block;margin:0 auto 10px;border:3px solid var(--g)}
-#loginBox{position:fixed;inset:0;background:var(--bg);z-index:100;display:flex;align-items:center;justify-content:center}
+.sheet input{width:100%;padding:12px;border-radius:8px;border:none;background:#2a3942;color:#fff;margin:8px 0}
 .card{background:var(--h);padding:22px;border-radius:14px;width:90%;max-width:360px;text-align:center}
 .card input{width:100%;padding:12px;border-radius:8px;border:none;margin:6px 0;background:#2a3942;color:#fff}
-#ctxMenu{position:fixed;background:#233138;padding:8px;border-radius:8px;z-index:20;display:none}
-#ctxMenu button{background:transparent;border:none;color:#fff;padding:8px 12px;width:100%;text-align:left}
+#loginBox{position:fixed;inset:0;background:var(--bg);z-index:100;display:flex;align-items:center;justify-content:center}
 </style>
 </head>
 <body>
 
 <div id="loginBox"><div class="card">
-<h2 style="color:var(--g)">Setup Account</h2>
-<input id="inName" placeholder="Full Name">
-<input id="inUname" placeholder="username (ex: numan123)">
-<div id="unameTick" style="font-size:13px;height:18px;text-align:left"></div>
-<button class="bt" style="width:100%;border-radius:8px" onclick="saveAcc()">Start Chat</button>
-<p id="loginErr" style="color:#ff6b6b;font-size:13px;margin-top:8px"></p>
+<h2 style="color:var(--g)">Create Account</h2>
+<input id="inName" placeholder="Name">
+<input id="inUname" placeholder="username (small letters)">
+<div id="unameTick" style="font-size:13px;height:18px;text-align:left;margin:4px"></div>
+<button class="bt" style="width:100%;border-radius:10px" onclick="saveAcc()">Continue</button>
+<p id="loginErr" style="color:#ff6b6b;font-size:13px;margin-top:6px"></p>
 </div></div>
 
 <div id="settings"><div class="sheet">
 <h3 style="text-align:center">Settings</h3>
-<img id="setDPPrev" src=""><input type="file" id="setDPIn" accept="image/*">
-<input id="setName" placeholder="Name">
-<input id="setUname" placeholder="username">
-<div id="setUnameTick" style="font-size:13px;height:18px;text-align:left"></div>
-<button class="bt" style="width:100%;border-radius:10px;margin-top:10px" onclick="saveSettings()">Save</button>
-<button style="width:100%;margin-top:8px;background:transparent;border:none;color:#aaa" onclick="closeSettings()">Cancel</button>
-<p id="setErr" style="color:#ff6b6b;font-size:12px;text-align:center;margin-top:6px"></p>
+<img id="setDPPrev" style="width:80px;height:80px;border-radius:50%;display:block;margin:0 auto 10px">
+<input id="setName"><input id="setUname"><div id="setUnameTick" style="font-size:13px;height:16px"></div>
+<button class="bt" style="width:100%;border-radius:10px;margin-top:8px" onclick="saveSettings()">Save</button>
+<button style="width:100%;background:transparent;border:none;color:#aaa;margin-top:8px" onclick="closeSettings()">Cancel</button>
+<p id="setErr" style="color:#ff6b6b;font-size:12px;text-align:center"></p>
 </div></div>
 
-<div id="newChatBox"><div class="sheet"><h3>New Chat</h3><input id="searchIn" placeholder="username search..." oninput="searchU()"><div id="searchRes" style="max-height:250px;overflow:auto;margin-top:8px"></div><button style="width:100%;margin-top:10px;background:transparent;border:none;color:#aaa" onclick="closeNewChat()">Close</button></div></div>
-
-<div id="ctxMenu"><button onclick="delMsg('me')">Delete for me</button><button onclick="delMsg('all')">Delete for Everyone</button></div>
+<div id="newChatBox"><div class="sheet"><h3>New Chat - Search Username</h3><input id="searchIn" placeholder="type username ex: numan" oninput="searchU()"><div id="searchRes" style="max-height:300px;overflow:auto"></div><button style="width:100%;background:transparent;border:none;color:#aaa;margin-top:10px" onclick="closeNewChat()">Close</button></div></div>
 
 <header>
-<div style="display:flex;gap:10px;align-items:center"><img id="dp" src=""><div><b id="nm"></b><div id="unameShow" style="font-size:11px;opacity:.6"></div></div></div>
+<div style="display:flex;gap:10px;align-items:center"><img id="dp"><div><b id="nm"></b><div id="unameShow" style="font-size:11px;opacity:.6"></div></div></div>
 <button class="bt" onclick="openSettings()">⚙️</button>
 </header>
-
+<div id="typing" style="height:16px;font-size:12px;color:var(--g);padding:2px 12px"></div>
 <div id="chat"></div>
 <button id="fab" onclick="openNewChat()">+</button>
-
-<div class="input">
-<input id="msg" placeholder="Message"><button class="bt" id="sBtn">➤</button>
-</div>
+<div class="input"><input id="msg" placeholder="Type message"><button class="bt" id="sBtn">➤</button></div>
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
 let socket=io();
-let myId=localStorage.getItem('wa_id'), myName=localStorage.getItem('wa_name'), myDP=localStorage.getItem('wa_dp'), myUname=localStorage.getItem('wa_uname');
-let sel=null, selMsgs=JSON.parse(localStorage.getItem('wa_chats')||'{}'), curDelId=null, curDelData=null, checkTO;
+let myId=localStorage.getItem('wa_id'), myName=localStorage.getItem('wa_name'), myUname=localStorage.getItem('wa_uname'), myDP=localStorage.getItem('wa_dp');
+let sel=JSON.parse(localStorage.getItem('wa_sel')||'null');
+let selMsgs=JSON.parse(localStorage.getItem('wa_chats')||'{}');
+let checkTO;
 
-if(myId && myName && myUname){
+function init(){
+ if(myId){
   document.getElementById('loginBox').style.display='none';
   document.getElementById('nm').innerText=myName;
   document.getElementById('unameShow').innerText='@'+myUname;
   document.getElementById('dp').src=myDP;
-  socket.emit('join',{id:myId,name:myName,dp:myDP,username:myUname});
+  socket.emit('join',{id:myId,name:myName,username:myUname,dp:myDP});
+  if(sel) render();
+ }
 }
+init();
 
 function saveAcc(){
-  let n=document.getElementById('inName').value.trim();
-  let u=document.getElementById('inUname').value.trim().toLowerCase().replace(/[^a-z0-9_]/g,'');
-  if(!n||!u) return document.getElementById('loginErr').innerText='Dono bharo';
-  if(u.length<3) return document.getElementById('loginErr').innerText='Username min 3 char';
-  let id='u_'+Date.now();
-  socket.emit('join',{id:id,name:n,dp:`https://i.pravatar.cc/150?u=${id}`,username:u});
-  // save tabhi hoga jab server OK bolega
-  socket.once('joinOk', (user)=>{
-    localStorage.setItem('wa_id',user.id); localStorage.setItem('wa_name',user.name);
-    localStorage.setItem('wa_uname',user.username); localStorage.setItem('wa_dp',user.dp);
-    location.reload();
-  });
+ let n=document.getElementById('inName').value.trim();
+ let u=document.getElementById('inUname').value.trim().toLowerCase().replace(/[^a-z0-9_]/g,'');
+ if(!n||!u) return document.getElementById('loginErr').innerText='Name + username likho';
+ if(u.length<3) return document.getElementById('loginErr').innerText='Min 3 char';
+ let id='u_'+Date.now();
+ socket.emit('join',{id:id,name:n,username:u,dp:`https://i.pravatar.cc/150?u=${id}`});
 }
-
+socket.on('joinOk', user=>{
+ localStorage.setItem('wa_id',user.id); localStorage.setItem('wa_name',user.name);
+ localStorage.setItem('wa_uname',user.username); localStorage.setItem('wa_dp',user.dp);
+ location.reload();
+});
 socket.on('usernameTaken', ()=>{
-  document.getElementById('loginErr').innerText='❌ Ye username already taken hai, dusra likho';
-  document.getElementById('setErr').innerText='❌ Already taken';
+ document.getElementById('loginErr').innerText='❌ Already taken, dusra try karo';
+ document.getElementById('setErr').innerText='❌ Already taken';
 });
-
 socket.on('checkResult', r=>{
-  let t1=document.getElementById('unameTick'), t2=document.getElementById('setUnameTick');
-  let txt=r.available?'✅ Available':'❌ Already taken';
-  if(document.getElementById('loginBox').style.display!=='none') t1.innerHTML=txt; else t2.innerHTML=txt;
+ let tick=document.getElementById('loginBox').style.display!=='none'?document.getElementById('unameTick'):document.getElementById('setUnameTick');
+ tick.innerHTML = r.available? '✅ Available' : '❌ Taken';
 });
-
 document.getElementById('inUname').addEventListener('input', e=>{
-  let v=e.target.value.trim().toLowerCase(); let tick=document.getElementById('unameTick');
-  if(v.length<3){ tick.innerHTML=''; return; } tick.innerHTML='⏳ checking...';
-  clearTimeout(checkTO); checkTO=setTimeout(()=>socket.emit('checkUsername',{q:v,myId:myId||'temp'}),400);
+ let v=e.target.value.toLowerCase().trim(); let tick=document.getElementById('unameTick');
+ if(v.length<3){tick.innerHTML=''; return;} tick.innerHTML='⏳ checking...';
+ clearTimeout(checkTO); checkTO=setTimeout(()=>socket.emit('checkUsername',{q:v,myId:myId||'temp'}),300);
 });
 document.getElementById('setUname').addEventListener('input', e=>{
-  let v=e.target.value.trim().toLowerCase(); let tick=document.getElementById('setUnameTick');
-  if(v.length<3){ tick.innerHTML=''; return; } tick.innerHTML='⏳ checking...';
-  clearTimeout(checkTO); checkTO=setTimeout(()=>socket.emit('checkUsername',{q:v,myId:myId}),400);
+ let v=e.target.value.toLowerCase().trim(); let tick=document.getElementById('setUnameTick');
+ if(v.length<3){tick.innerHTML=''; return;} tick.innerHTML='⏳ checking...';
+ clearTimeout(checkTO); checkTO=setTimeout(()=>socket.emit('checkUsername',{q:v,myId:myId}),300);
 });
 
-function openSettings(){ document.getElementById('settings').style.display='flex'; document.getElementById('setDPPrev').src=document.getElementById('dp').src; document.getElementById('setName').value=myName; document.getElementById('setUname').value=myUname; }
+function openSettings(){ document.getElementById('settings').style.display='flex'; document.getElementById('setDPPrev').src=myDP; document.getElementById('setName').value=myName; document.getElementById('setUname').value=myUname; }
 function closeSettings(){ document.getElementById('settings').style.display='none'; }
-document.getElementById('setDPIn').onchange=e=>{ let f=e.target.files[0]; if(!f) return; let r=new FileReader(); r.onload=()=>document.getElementById('setDPPrev').src=r.result; r.readAsDataURL(f); };
-function saveSettings(){ let n=document.getElementById('setName').value.trim(), u=document.getElementById('setUname').value.trim().toLowerCase(), dp=document.getElementById('setDPPrev').src; if(!n||!u) return; socket.emit('updateProfile',{id:myId,name:n,username:u,dp:dp}); }
+function saveSettings(){ let n=document.getElementById('setName').value.trim(), u=document.getElementById('setUname').value.trim().toLowerCase(); if(!n||!u) return; socket.emit('updateProfile',{id:myId,name:n,username:u,dp:document.getElementById('setDPPrev').src}); }
 socket.on('profileUpdated', u=>{ localStorage.setItem('wa_name',u.name); localStorage.setItem('wa_uname',u.username); localStorage.setItem('wa_dp',u.dp); location.reload(); });
 
-function openNewChat(){ document.getElementById('newChatBox').style.display='flex'; }
+function openNewChat(){ document.getElementById('newChatBox').style.display='flex'; document.getElementById('searchIn').value=''; document.getElementById('searchRes').innerHTML=''; }
 function closeNewChat(){ document.getElementById('newChatBox').style.display='none'; }
-function searchU(){ let q=document.getElementById('searchIn').value.trim(); if(q) socket.emit('searchUser',q); }
+
+function searchU(){
+ let q=document.getElementById('searchIn').value.trim();
+ if(q.length<1) return;
+ socket.emit('searchUser', q);
+}
 socket.on('searchResult', list=>{
-  let d=document.getElementById('searchRes'); d.innerHTML='';
-  list.forEach(u=>{
-    if(u.id===myId) return;
-    let row=document.createElement('div'); row.style.cssText='display:flex;gap:8px;padding:8px;border-bottom:1px solid #233138;cursor:pointer';
-    row.innerHTML=`<img src="${u.dp}" style="width:36px;height:36px;border-radius:50%"><div><b>${u.name}</b><div style="font-size:12px;opacity:.6">@${u.username}</div></div>`;
-    row.onclick=()=>{ sel={id:u.id,name:u.name}; document.getElementById('nm').innerText=u.name; document.getElementById('unameShow').innerText='@'+u.username; closeNewChat(); render(); };
-    d.appendChild(row);
-  });
+ let box=document.getElementById('searchRes'); box.innerHTML='';
+ if(list.length===0) box.innerHTML='<p style="opacity:.6;font-size:13px;padding:8px">Koi user nahi mila - dusre phone me login karo fir search karo</p>';
+ list.forEach(u=>{
+  if(u.id===myId) return;
+  let div=document.createElement('div');
+  div.style.cssText='display:flex;gap:10px;padding:10px;border-bottom:1px solid #233138;cursor:pointer';
+  div.innerHTML=`<img src="${u.dp}" style="width:40px;height:40px;border-radius:50%"><div><b>${u.name}</b><div style="font-size:12px;opacity:.7">@${u.username} ${u.online?'🟢':''}</div><div style="font-size:10px;opacity:.5">ID: ${u.id}</div></div>`;
+  div.onclick=()=>{
+   sel={id:u.id, name:u.name, username:u.username, dp:u.dp};
+   localStorage.setItem('wa_sel', JSON.stringify(sel));
+   document.getElementById('nm').innerText=u.name;
+   document.getElementById('unameShow').innerText='@'+u.username+' | '+u.id;
+   document.getElementById('dp').src=u.dp;
+   closeNewChat(); render();
+  };
+  box.appendChild(div);
+ });
 });
 
-function saveChats(){ localStorage.setItem('wa_chats', JSON.stringify(selMsgs)); }
-function render(){ let c=document.getElementById('chat'); c.innerHTML=''; if(!sel) return; (selMsgs[sel.id]||[]).forEach(m=>add(m,m.from===myId?'me':'ot',false)); }
-function add(d,type,save=true){
-  let c=document.getElementById('chat'); let el=document.createElement('div'); el.className='b '+(type==='me'?'me':'ot'); el.dataset.mid=d.msgId;
-  let inner=d.deleted?'<i>🚫 deleted</i>':(d.text||'');
-  el.innerHTML=inner+`<div class="meta">${new Date(d.time).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</div>`;
-  el.oncontextmenu=e=>{e.preventDefault(); curDelId=d.msgId; curDelData=d; let m=document.getElementById('ctxMenu'); m.style.display='block'; m.style.top=e.clientY+'px'; m.style.left='20px';};
-  c.appendChild(el); c.scrollTop=c.scrollHeight;
-  if(save && sel){ if(!selMsgs[sel.id]) selMsgs[sel.id]=[]; selMsgs[sel.id].push(d); saveChats(); }
+function save(){ localStorage.setItem('wa_chats', JSON.stringify(selMsgs)); localStorage.setItem('wa_sel', JSON.stringify(sel)); }
+function render(){ let c=document.getElementById('chat'); c.innerHTML=''; if(!sel) return; (selMsgs[sel.id]||[]).forEach(m=> addBubble(m,m.from===myId?'me':'ot',false)); }
+function addBubble(d,type,doSave=true){
+ let c=document.getElementById('chat'); let el=document.createElement('div'); el.className='b '+(type==='me'?'me':'ot');
+ el.innerHTML=`${d.text}<div class="meta">${new Date(d.time).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})} ${type==='me'?'✓✓':''}</div>`;
+ c.appendChild(el); c.scrollTop=c.scrollHeight;
+ if(doSave){ if(!selMsgs[sel.id]) selMsgs[sel.id]=[]; selMsgs[sel.id].push(d); save(); }
 }
-document.addEventListener('click',()=>document.getElementById('ctxMenu').style.display='none');
-function delMsg(mode){ if(mode==='all') socket.emit('deleteMsg',{msgId:curDelId}); let k=sel?.id; if(k && selMsgs[k]){ selMsgs[k]=selMsgs[k].map(x=> x.msgId===curDelId? {...x,deleted:true}:x); saveChats(); } render(); }
-function sendMsg(){ let txt=document.getElementById('msg').value.trim(); if(!sel||!txt) return; let data={msgId:'m_'+Date.now(),text:txt,from:myId,to:sel.id,time:Date.now()}; add(data,'me',true); socket.emit('send',data); document.getElementById('msg').value=''; }
+function sendMsg(){
+ let txt=document.getElementById('msg').value.trim();
+ if(!sel) return alert('Pehle + dabake user search karke select karo');
+ if(!txt) return;
+ let data={msgId:'m_'+Date.now(), text:txt, from:myId, to:sel.id, time:Date.now()};
+ addBubble(data,'me',true);
+ socket.emit('send', data);
+ document.getElementById('msg').value='';
+}
 document.getElementById('sBtn').onclick=sendMsg;
 document.getElementById('msg').addEventListener('keypress',e=>{if(e.key==='Enter') sendMsg();});
-socket.on('receive', d=>{ if(!selMsgs[d.from]) selMsgs[d.from]=[]; selMsgs[d.from].push(d); saveChats(); if(sel && sel.id===d.from) add(d,'ot',false); });
-socket.on('deleteMsg', d=>{ Object.keys(selMsgs).forEach(k=>{ selMsgs[k]=selMsgs[k].map(m=> m.msgId===d.msgId?{...m,deleted:true}:m); }); saveChats(); render(); });
+document.getElementById('msg').addEventListener('input', ()=>{ if(sel) socket.emit('typing',{from:myId,to:sel.id}); });
+
+socket.on('receive', data=>{
+ if(!selMsgs[data.from]) selMsgs[data.from]=[];
+ selMsgs[data.from].push(data);
+ localStorage.setItem('wa_chats', JSON.stringify(selMsgs));
+ if(sel && sel.id===data.from) addBubble(data,'ot',false);
+ else { /* agar dusra chat open hai to notification */ console.log('New msg from', data.from); }
+});
+socket.on('typing', d=>{ if(sel && d.from===sel.id){ document.getElementById('typing').innerText='typing...'; setTimeout(()=>document.getElementById('typing').innerText='',1500); }});
 </script>
 </body>
 </html>
