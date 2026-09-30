@@ -18,7 +18,11 @@ io.on('connection', socket=>{
     socket.userId=data.id; socket.emit('joinOk', users[data.id]); io.emit('users', Object.values(users));
   });
   socket.on('searchUser', q=>{ q=(q||'').toLowerCase().trim(); let res=Object.values(users).filter(u=>u.username.includes(q)||u.name.toLowerCase().includes(q)).slice(0,20); socket.emit('searchResult', res); });
-  socket.on('send', data=>{ let target=users[data.to]||Object.values(users).find(u=>u.username===data.to); if(target&&target.socketId) io.to(target.socketId).emit('receive', data); });
+  socket.on('send', data=>{ let target=users[data.to]; if(target&&target.socketId) io.to(target.socketId).emit('receive', data); });
+  socket.on('callUser', d=>{ let t=users[d.to]; if(t) io.to(t.socketId).emit('incomingCall', {from:d.from, fromName:d.fromName, offer:d.offer, type:d.type}); });
+  socket.on('answerCall', d=>{ let t=users[d.to]; if(t) io.to(t.socketId).emit('callAnswered', d); });
+  socket.on('ice', d=>{ let t=users[d.to]; if(t) io.to(t.socketId).emit('ice', d); });
+  socket.on('endCall', d=>{ let t=users[d.to]; if(t) io.to(t.socketId).emit('callEnded'); });
   socket.on('updateProfile', data=>{ data.username=data.username.toLowerCase().trim(); if(isTaken(data.username, data.id)) return socket.emit('usernameTaken'); Object.keys(users).forEach(k=>{ if(users[k].username===data.username && k!==data.id) delete users[k]; }); if(users[data.id]){ users[data.id]={...users[data.id],name:data.name,username:data.username,dp:data.dp}; socket.emit('profileUpdated', users[data.id]); io.emit('users', Object.values(users)); } });
   socket.on('disconnect', ()=>{ if(socket.userId&&users[socket.userId]){ users[socket.userId].online=false; io.emit('users', Object.values(users)); } });
 });
