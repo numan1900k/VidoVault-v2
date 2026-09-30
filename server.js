@@ -1,66 +1,37 @@
-const express=require('express');
-const http=require('http');
-const {Server}=require('socket.io');
-const fs=require('fs');
-const app=express();
-const server=http.createServer(app);
-const io=new Server(server,{maxHttpBufferSize:1e8});
+const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
+const fs = require('fs');
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server, { maxHttpBufferSize: 1e8 });
 app.use(express.static('public'));
-let users={}; // username -> {id,name,username,password,dp}
-let online={}; // id -> socket
-try{ users=JSON.parse(fs.readFileSync('users.json')); }catch(e){}
-function save(){ fs.writeFileSync('users.json', JSON.stringify(users)); }
 
-io.on('connection',socket=>{
-  socket.on('register',({name,username,password})=>{
-    username=username.toLowerCase();
-    if(users[username]) return socket.emit('authError','Username taken');
+let users = {};
+try{ if(fs.existsSync('users.json')) users = JSON.parse(fs.readFileSync('users.json','utf8')); }catch(e){}
+function save(){ try{ fs.writeFileSync('users.json', JSON.stringify(users)); }catch(e){} }
+
+io.on('connection', (socket) => {
+  socket.on('register', (d)=>{
+    let u = d.username.toLowerCase();
+    if(users[u]) return socket.emit('authError','Username already taken');
     let id='u_'+Date.now();
-    let dp=`https://i.pravatar.cc/150?u=${id}`;
-    users[username]={id,name,username,password,dp};
-    save();
-    socket.emit('authOk',users[username]);
+    users[u]={ id, name:d.name, username:u, password:d.password, dp:`https://i.pravatar.cc/150?u=${id}` };
+    save(); socket.emit('authOk', users[u]);
   });
-  socket.on('login',({username,password})=>{
-    username=username.toLowerCase();
-    let u=users[username];
-    if(!u) return socket.emit('authError','User not found');
-    if(u.password!==password) return socket.emit('authError','Wrong password');
-    socket.emit('authOk',u);
+  socket.on('login', (d)=>{
+    let u = d.username.toLowerCase();
+    if(!users[u]) return socket.emit('authError','User not found');
+    if(users[u].password!==d.password) return socket.emit('authError','Wrong password');
+    socket.emit('authOk', users[u]);
   });
-  socket.on('join',u=>{
-    online[u.id]=socket.id;
-    socket.userId=u.id;
-    socket.join(u.id);
-    io.emit('users',Object.values(users));
-  });
-  socket.on('searchUser',q=>{
-    q=q.toLowerCase();
-    let res=Object.values(users).filter(u=>u.username.includes(q)||u.name.toLowerCase().includes(q)).slice(0,10);
-    socket.emit('searchResult',res);
-  });
-  socket.on('send',d=>{
-    io.to(d.to).emit('receive',d);
-    socket.emit('sent',d);
-  });
-  socket.on('call',{to,from,offer,type})=>{
-    io.to(to).emit('incomingCall',{from,offer,type});
-  });
-  socket.on('answer',{to,answer})=>{
-    io.to(to).emit('callAnswered',{answer});
-  });
-  socket.on('ice',{to,candidate})=>{
-    io.to(to).emit('ice',{candidate});
-  });
-  socket.on('endCall',{to})=>{
-    io.to(to).emit('callEnded');
-  });
-  socket.on('updateProfile',({id,name,dp})=>{
-    let uname=Object.keys(users).find(k=>users[k].id===id);
-    if(uname){ if(name) users[uname].name=name; if(dp) users[uname].dp=dp; save(); io.emit('users',Object.values(users)); }
-  });
-  socket.on('disconnect',()=>{
-    if(socket.userId) delete online[socket.userId];
-  });
+  socket.on('join', (u)=>{ socket.userId=u.id; socket.join(u.id); io.emit('users', Object.values(users)); });
+  socket.on('searchUser', (q)=>{ q=(q||'').toLowerCase(); let r=Object.values(users).filter(x=>x.username.includes(q)||x.name.toLowerCase().includes(q)).slice(0,10); socket.emit('searchResult', r); });
+  socket.on('send', (d)=>{ io.to(d.to).emit('receive', d); });
+  socket.on('call', (d)=>{ io.to(d.to).emit('incomingCall',{from:d.from,offer:d.offer,type:d.type}); });
+  socket.on('answer', (d)=>{ io.to(d.to).emit('callAnswered',{answer:d.answer}); });
+  socket.on('ice', (d)=>{ io.to(d.to).emit('ice',{candidate:d.candidate}); });
+  socket.on('endCall', (d)=>{ io.to(d.to).emit('callEnded'); });
+  socket.on('updateProfile', (d)=>{ let k=Object.keys(users).find(x=>users[x].id===d.id); if(k){ if(d.name) users[k].name=d.name; if(d.dp) users[k].dp=d.dp; save(); io.emit('users',Object.values(users)); } });
 });
-server.listen(3000,()=>console.log('running 3000'));
+server.listen(process.env.PORT||3000, ()=>console.log('live'));
