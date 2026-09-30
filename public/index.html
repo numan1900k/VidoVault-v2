@@ -8,64 +8,235 @@
 *{margin:0;padding:0;box-sizing:border-box;font-family:sans-serif}
 body{background:var(--bg);color:var(--t);height:100vh;display:flex;flex-direction:column}
 header{background:var(--h);padding:10px;display:flex;justify-content:space-between;align-items:center}
-#dp{width:40px;height:40px;border-radius:50%;cursor:pointer}
+#dp{width:40px;height:40px;border-radius:50%;cursor:pointer;object-fit:cover}
 .tabs{display:flex;background:var(--h)}
-.tabs button{flex:1;padding:12px;background:transparent;border:none;color:var(--t);border-bottom:3px solid transparent;cursor:pointer}
+.tabs button{flex:1;padding:12px;background:transparent;border:none;color:var(--t);border-bottom:3px solid transparent}
 .tabs button.active{border-color:var(--g);color:var(--g)}
-#chat{flex:1;overflow:auto;padding:10px;display:flex;flex-direction:column;gap:6px}
-.b{max-width:75%;padding:8px 10px;border-radius:8px}
+#chat{flex:1;overflow:auto;padding:10px;display:flex;flex-direction:column;gap:6px;background:#0b141a}
+.b{max-width:75%;padding:8px 10px;border-radius:8px;position:relative;word-break:break-word}
 .me{align-self:flex-end;background:var(--b1);border-top-right-radius:0}
 .ot{align-self:flex-start;background:var(--b2);border-top-left-radius:0}
-.meta{font-size:10px;opacity:.6;text-align:right}
+.meta{font-size:10px;opacity:.6;text-align:right;margin-top:4px}
 .input{background:var(--h);padding:8px;display:flex;gap:8px;align-items:center}
-.input input{flex:1;padding:10px;border-radius:20px;border:none;outline:none}
+.input input{flex:1;padding:11px;border-radius:22px;border:none;outline:none;background:#2a3942;color:#fff}
 .bt{width:40px;height:40px;border-radius:50%;border:none;background:var(--g);color:#fff;font-size:20px;cursor:pointer}
-#users{position:absolute;top:110px;left:10px;background:var(--h);padding:10px;border-radius:10px;display:none;z-index:9;min-width:220px;max-height:50vh;overflow:auto}
-#statusBar{display:none;gap:10px;padding:10px;overflow-x:auto;background:var(--bg)}
-.sItem{text-align:center;min-width:60px;cursor:pointer}
-.sItem img{width:50px;height:50px;border-radius:50%;border:3px solid var(--g)}
+#users{position:absolute;top:110px;left:10px;background:var(--h);padding:10px;border-radius:10px;display:none;z-index:10;min-width:250px;max-height:60vh;overflow:auto}
+#viewer{position:fixed;inset:0;background:rgba(0,0,0,.9);display:none;align-items:center;justify-content:center;z-index:99;flex-direction:column;padding:20px}
+#viewer img,#viewer video{max-width:95%;max-height:80vh;border-radius:10px}
+.ctx{position:absolute;background:#233138;padding:8px;border-radius:8px;z-index:20;display:none;box-shadow:0 2px 10px #000}
+.ctx button{background:transparent;border:none;color:#fff;padding:8px 12px;width:100%;text-align:left}
+.sBar{display:none;gap:10px;padding:10px;overflow-x:auto}
+.sItem{min-width:60px;text-align:center}
+.sItem img{width:54px;height:54px;border-radius:50%;border:3px solid var(--g);object-fit:cover}
+#loginBox{position:fixed;inset:0;background:var(--bg);z-index:100;display:flex;align-items:center;justify-content:center}
+.card{background:var(--h);padding:22px;border-radius:14px;width:90%;max-width:340px;text-align:center}
+.card input{width:100%;padding:12px;border-radius:8px;border:none;margin:10px 0;background:#2a3942;color:#fff;outline:none}
 </style>
 </head>
 <body>
-<header>
-<div style="display:flex;gap:10px;align-items:center"><img id="dp" src="https://i.pravatar.cc/100"><b id="nm"></b></div>
-<div style="display:flex;gap:6px"><button class="bt" id="uBtn">👥</button><input type="file" id="dpIn" accept="image/*" hidden></div>
-</header>
-<div class="tabs">
-<button id="tChat" class="active" onclick="setTab('chats')">CHATS</button>
-<button id="tStat" onclick="setTab('status')">STATUS</button>
-<button id="tGrp" onclick="setTab('groups')">GROUPS</button>
+
+<div id="loginBox">
+  <div class="card">
+    <h2 style="color:var(--g)">WhatsApp Setup</h2>
+    <p style="font-size:13px;opacity:.7;margin:6px 0">Ek baar naam set karo, dubara nahi puchega</p>
+    <input id="inName" placeholder="Apna naam likho">
+    <button class="bt" style="width:100%;border-radius:8px" onclick="saveAcc()">Start Chatting</button>
+  </div>
 </div>
-<div id="statusBar"></div>
+
+<div id="viewer" onclick="this.style.display='none'"><span style="position:absolute;top:15px;right:20px;font-size:26px;cursor:pointer">✕</span><div id="viewContent"></div></div>
+<div id="ctxMenu" class="ctx"><button onclick="delMsg('me')">🗑️ Delete for me</button><button onclick="delMsg('all')">🚫 Delete for Everyone</button></div>
+
+<header>
+<div style="display:flex;gap:10px;align-items:center"><img id="dp" src=""><b id="nm"></b></div>
+<div style="display:flex;gap:8px"><button class="bt" style="font-size:14px" onclick="toggleUsers()">👥</button><input type="file" id="dpIn" accept="image/*" hidden></div>
+</header>
+
+<div class="tabs">
+<button id="tChat" class="active">CHATS</button>
+<button id="tStat" onclick="openStatus()">STATUS</button>
+<button id="tGrp" onclick="createGrp()">GROUPS</button>
+</div>
+
+<div id="sBar" class="sBar"></div>
 <div id="users"></div>
-<div id="typing" style="height:16px;font-size:12px;color:var(--g);padding:0 10px"></div>
+<div id="typing" style="height:16px;font-size:12px;color:var(--g);padding:2px 12px"></div>
 <div id="chat"></div>
+
 <div class="input">
-<label for="fIn" style="cursor:pointer">📎</label><input type="file" id="fIn" accept="image/*" hidden>
+<label for="fIn" style="cursor:pointer;font-size:22px">📎</label><input type="file" id="fIn" accept="image/*,video/*" hidden>
 <input id="msg" placeholder="Message"><button class="bt" id="vBtn">🎤</button><button class="bt" id="sBtn">➤</button>
 </div>
+
 <script src="/socket.io/socket.io.js"></script>
 <script>
-let socket=io(), myId=localStorage.getItem('wa_id')||'u_'+Math.floor(Math.random()*9999), myName=localStorage.getItem('wa_name')||prompt('Naam:')||myId, myDP=localStorage.getItem('wa_dp')||'https://i.pravatar.cc/100?u='+myId;
-localStorage.setItem('wa_id',myId);localStorage.setItem('wa_name',myName);document.getElementById('nm').innerText=myName;document.getElementById('dp').src=myDP;
-let sel=null, pendImg=null, isRec=false, rec, chunks=[];
-let curTab='chats', groups=[];
-const chatEl=document.getElementById('chat'), msgI=document.getElementById('msg');
-socket.emit('join',{id:myId,name:myName,dp:myDP});
+let socket=io();
+let myId=localStorage.getItem('wa_id'), myName=localStorage.getItem('wa_name'), myDP=localStorage.getItem('wa_dp');
+let sel=null, selMsgs=JSON.parse(localStorage.getItem('wa_chats')||'{}'), pendFile=null, curDelId=null, curDelData=null;
+let isRec=false, rec, chunks=[];
+
+function initAcc(){
+  if(myId && myName){
+    document.getElementById('loginBox').style.display='none';
+    document.getElementById('nm').innerText=myName;
+    document.getElementById('dp').src=myDP||`https://i.pravatar.cc/100?u=${myId}`;
+    socket.emit('join',{id:myId,name:myName,dp:myDP});
+    loadChatList();
+  }
+}
+function saveAcc(){
+  let n=document.getElementById('inName').value.trim(); if(!n) return alert('Naam likho');
+  myId='u_'+Math.floor(Math.random()*99999); myName=n; myDP=`https://i.pravatar.cc/150?u=${myId}`;
+  localStorage.setItem('wa_id',myId); localStorage.setItem('wa_name',myName); localStorage.setItem('wa_dp',myDP);
+  initAcc();
+}
+initAcc();
+
 document.getElementById('dp').onclick=()=>document.getElementById('dpIn').click();
-document.getElementById('dpIn').onchange=e=>{let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{myDP=r.result;localStorage.setItem('wa_dp',myDP);document.getElementById('dp').src=myDP;socket.emit('updateDP',{id:myId,dp:myDP})};r.readAsDataURL(f)};
-function addMsg(d,type){let el=document.createElement('div');el.className='b '+(type==='me'?'me':'ot');let c='';if(d.image)c+=`<img src="${d.image}" style="max-width:100%;border-radius:6px"><br>`;if(d.audio)c+=`<audio controls src="${d.audio}" style="width:180px"></audio><br>`;c+=d.text||'';let tm=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});el.innerHTML=c+`<div class="meta">${tm} ${type==='me'?'✓✓':''}</div>`;chatEl.appendChild(el);chatEl.scrollTop=chatEl.scrollHeight}
-function send(){let t=msgI.value.trim();if(!t&&!pendImg)return;let data={msgId:'m_'+Date.now(),text:t,image:pendImg,from:myId,to:sel?.id||'all',groupId:sel?.isGroup?sel.id:null};if(data.groupId){socket.emit('groupMsg',data);addMsg(data,'me')}else{addMsg({...data,text:t||'📷 Photo'},'me');socket.emit('send',data)}msgI.value='';pendImg=null}
-document.getElementById('sBtn').onclick=send;msgI.addEventListener('keypress',e=>{if(e.key==='Enter')send();socket.emit('typing',{to:sel?.id||'all',from:myId,name:myName})});
-document.getElementById('fIn').onchange=e=>{let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{pendImg=r.result;msgI.value='📷 Photo selected';};r.readAsDataURL(f)};
-document.getElementById('vBtn').onclick=async()=>{if(!isRec){try{let st=await navigator.mediaDevices.getUserMedia({audio:true});rec=new MediaRecorder(st);chunks=[];rec.ondataavailable=e=>chunks.push(e.data);rec.onstop=()=>{let bl=new Blob(chunks,{type:'audio/webm'});let r=new FileReader();r.onload=()=>{let d={msgId:'m_'+Date.now(),audio:r.result,from:myId,to:sel?.id||'all'};addMsg(d,'me');socket.emit('send',d)};r.readAsDataURL(bl)};rec.start();isRec=true;document.getElementById('vBtn').innerText='⏹️'}catch{alert('Mic allow karo')}}else{rec.stop();isRec=false;document.getElementById('vBtn').innerText='🎤'}};
-document.getElementById('uBtn').onclick=()=>{let d=document.getElementById('users');d.style.display=d.style.display==='none'?'block':'none'};
-socket.on('users',us=>{let d=document.getElementById('users');d.innerHTML='<b>Users</b><br><br>';us.forEach(u=>{if(u.id===myId)return;let row=document.createElement('div');row.style.cssText='display:flex;gap:8px;padding:6px;cursor:pointer';row.innerHTML=`<img src="${u.dp}" style="width:32px;height:32px;border-radius:50%"><span>${u.name}</span>`;row.onclick=()=>{sel=u;document.getElementById('users').style.display='none';chatEl.innerHTML='';document.getElementById('nm').innerText='Chat: '+u.name};d.appendChild(row)})});
-socket.on('receive',d=>{addMsg(d,'ot')});socket.on('groupMsg',d=>{if(sel&&sel.id===d.groupId)addMsg(d,'ot');else addMsg({text:`[${groups.find(g=>g.id===d.groupId)?.name||'Group'}] ${d.text||'🔊'}`,image:d.image,audio:d.audio},'ot')});
-socket.on('typing',d=>{document.getElementById('typing').innerText=d.name+' typing...';setTimeout(()=>document.getElementById('typing').innerText='',2000)});
-socket.on('statuses',list=>{let bar=document.getElementById('statusBar');bar.innerHTML='';list.forEach(s=>{let it=document.createElement('div');it.className='sItem';it.innerHTML=`<img src="${s.dp}"><div style="font-size:10px">${s.name}</div>`;it.onclick=()=>{alert(s.name+': '+s.text);if(s.image)window.open(s.image)};bar.appendChild(it)})});
-socket.on('groups',list=>{groups=list;});
-function setTab(t){curTab=t;document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));document.getElementById(t==='chats'?'tChat':t==='status'?'tStat':'tGrp').classList.add('active');let bar=document.getElementById('statusBar');if(t==='status'){bar.style.display='flex';let txt=prompt('Status text / image URL daal (khali chhod to cancel):');if(txt){let img=txt.startsWith('http')?txt:null;let tx=img? '':txt;socket.emit('postStatus',{id:myId,name:myName,dp:myDP,text:tx||'Photo',image:img})}}else if(t==='groups'){bar.style.display='none';let gname=prompt('Group naam:');if(gname){let m=prompt('Members ke IDs comma se (users list me se ID copy karo):');let mArr=m?m.split(',').map(s=>s.trim()):[];let gid='g_'+Date.now();socket.emit('createGroup',{id:gid,name:gname,members:[...mArr,myId]});alert('Group ban gaya: '+gname)}}else{bar.style.display='none';chatEl.innerHTML='';}}
+document.getElementById('dpIn').onchange=e=>{
+  let f=e.target.files[0]; if(!f) return;
+  let r=new FileReader(); r.onload=()=>{myDP=r.result; localStorage.setItem('wa_dp',myDP); document.getElementById('dp').src=myDP; socket.emit('updateDP',{id:myId,dp:myDP})}; r.readAsDataURL(f);
+};
+
+function saveChats(){ localStorage.setItem('wa_chats', JSON.stringify(selMsgs)); }
+function getChatKey(id){ return id; }
+
+function renderAll(){
+  let chatEl=document.getElementById('chat'); chatEl.innerHTML='';
+  if(!sel) return;
+  let key=getChatKey(sel.id); let msgs=selMsgs[key]||[];
+  msgs.forEach(d=> addBubble(d, d.from===myId?'me':'ot', false));
+}
+
+function addBubble(d, type, save=true){
+  let chatEl=document.getElementById('chat');
+  let el=document.createElement('div'); el.className='b '+(type==='me'?'me':'ot'); el.dataset.mid=d.msgId; el.dataset.time=d.time||Date.now();
+  let inner='';
+  if(d.deleted){ inner='<i style="opacity:.6">🚫 This message was deleted</i>'; }
+  else{
+    if(d.image){ inner+=`<img src="${d.image}" onclick="openViewer('img','${d.image}')" style="max-width:100%;border-radius:6px;cursor:pointer"><br>`; }
+    if(d.video){ inner+=`<video src="${d.video}" controls playsinline style="max-width:100%;border-radius:6px"></video><br>`; }
+    if(d.audio){ inner+=`<audio controls src="${d.audio}" style="width:200px"></audio><br>`; }
+    inner+= (d.text||'') ;
+  }
+  let tm=new Date(d.time||Date.now()).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  el.innerHTML=inner+`<div class="meta">${tm} ${type==='me' &&!d.deleted? '✓✓' : ''}</div>`;
+
+  // long press for delete
+  let pressTimer;
+  el.addEventListener('touchstart',()=>{pressTimer=setTimeout(()=>showCtx(d,el),600)});
+  el.addEventListener('touchend',()=>clearTimeout(pressTimer));
+  el.addEventListener('contextmenu',e=>{e.preventDefault(); showCtx(d,el); return false;});
+
+  chatEl.appendChild(el); chatEl.scrollTop=chatEl.scrollHeight;
+  if(save && sel){
+    let key=getChatKey(sel.id); if(!selMsgs[key]) selMsgs[key]=[]; selMsgs[key].push(d); saveChats();
+  }
+}
+
+function showCtx(d, el){
+  curDelId=d.msgId; curDelData=d;
+  let m=document.getElementById('ctxMenu'); m.style.display='block';
+  let rect=el.getBoundingClientRect(); m.style.top=(rect.top+window.scrollY)+'px'; m.style.left=(rect.left+20)+'px';
+}
+document.addEventListener('click',()=>document.getElementById('ctxMenu').style.display='none');
+
+function delMsg(mode){
+  if(!curDelId) return;
+  if(mode==='all'){
+    let age=Date.now()-(curDelData.time||Date.now());
+    if(age > 24*60*60*1000) return alert('24hr ke baad Delete for Everyone nahi hota!');
+    if(curDelData.from!==myId) return alert('Sirf apne messages hi Everyone ke liye delete kar sakte ho');
+    socket.emit('deleteMsg',{msgId:curDelId, chatId: sel.id, from:myId});
+  }
+  // local delete
+  let key=getChatKey(sel.id); if(selMsgs[key]){ selMsgs[key]=selMsgs[key].filter(x=>x.msgId!==curDelId); if(mode!=='all') selMsgs[key].push({...curDelData, deleted:true, msgId:curDelId}); saveChats(); }
+  document.querySelectorAll(`[data-mid="${curDelId}"]`).forEach(e=>{ e.innerHTML='<i style="opacity:.6">🚫 This message was deleted</i>'; });
+  document.getElementById('ctxMenu').style.display='none';
+}
+
+function openViewer(type, src){
+  let v=document.getElementById('viewer'), c=document.getElementById('viewContent');
+  c.innerHTML= type==='img'? `<img src="${src}">` : `<video src="${src}" controls autoplay playsinline></video>`;
+  v.style.display='flex';
+}
+
+function toggleUsers(){ let d=document.getElementById('users'); d.style.display=d.style.display==='none'?'block':'none'; }
+
+function loadChatList(){
+  // render old chat list from local
+  let d=document.getElementById('users');
+}
+
+function sendMsg(){
+  let txt=document.getElementById('msg').value.trim();
+  if(!txt &&!pendFile) return;
+  if(!sel) return alert('Pehle kisi user ko select karo 👥 se');
+  let data={msgId:'m_'+Date.now(), text:txt, from:myId, to:sel.id, time:Date.now(), groupId: sel.isGroup?sel.id:null };
+  if(pendFile){ if(pendFile.type==='image') data.image=pendFile.data; else if(pendFile.type==='video') data.video=pendFile.data; else data.audio=pendFile.data; }
+  addBubble(data,'me',true);
+  if(data.groupId) socket.emit('groupMsg', data); else socket.emit('send', data);
+  document.getElementById('msg').value=''; pendFile=null;
+}
+document.getElementById('sBtn').onclick=sendMsg;
+document.getElementById('msg').addEventListener('keypress',e=>{ if(e.key==='Enter') sendMsg(); });
+
+document.getElementById('fIn').onchange=e=>{
+  let f=e.target.files[0]; if(!f) return;
+  let r=new FileReader(); r.onload=()=>{
+    let typ=f.type.startsWith('video')?'video':f.type.startsWith('image')?'image':'audio';
+    pendFile={type:typ, data:r.result}; document.getElementById('msg').value=`📎 ${typ} selected - Send dabao`;
+  }; r.readAsDataURL(f);
+};
+
+document.getElementById('vBtn').onclick=async()=>{
+  if(!isRec){ try{ let st=await navigator.mediaDevices.getUserMedia({audio:true}); rec=new MediaRecorder(st); chunks=[]; rec.ondataavailable=e=>chunks.push(e.data); rec.onstop=()=>{ let bl=new Blob(chunks,{type:'audio/webm'}); let r=new FileReader(); r.onload=()=>{ pendFile={type:'audio',data:r.result}; sendMsg(); }; r.readAsDataURL(bl); }; rec.start(); isRec=true; document.getElementById('vBtn').innerText='⏹️'; }catch{ alert('Mic allow karo'); } } else { rec.stop(); isRec=false; document.getElementById('vBtn').innerText='🎤'; }
+};
+
+socket.on('users',us=>{
+  let d=document.getElementById('users'); d.innerHTML='<b style="color:var(--g)">Select Chat</b><br><br>';
+  // also add saved chats on top
+  Object.keys(selMsgs).forEach(k=>{
+    let info=us.find(x=>x.id===k) || {id:k,name:k,dp:`https://i.pravatar.cc/100?u=${k}`};
+    let row=document.createElement('div'); row.style.cssText='display:flex;gap:8px;padding:8px;cursor:pointer;border-bottom:1px solid #233138';
+    row.innerHTML=`<img src="${info.dp}" style="width:34px;height:34px;border-radius:50%"><div><div>${info.name}</div><div style="font-size:11px;opacity:.6">${(selMsgs[k].slice(-1)[0]?.text||'Photo').substring(0,20)}</div></div>`;
+    row.onclick=()=>{ sel={id:info.id,isGroup:info.id.startsWith('g_')}; document.getElementById('users').style.display='none'; document.getElementById('nm').innerText=info.name; renderAll(); };
+    d.appendChild(row);
+  });
+  us.forEach(u=>{ if(u.id===myId || selMsgs[u.id]) return; let row=document.createElement('div'); row.style.cssText='display:flex;gap:8px;padding:8px;cursor:pointer'; row.innerHTML=`<img src="${u.dp}" style="width:34px;height:34px;border-radius:50%"><span>${u.name}</span>`; row.onclick=()=>{ sel={id:u.id,isGroup:false}; d.style.display='none'; document.getElementById('nm').innerText='Chat: '+u.name; renderAll(); }; d.appendChild(row); });
+});
+
+socket.on('receive',d=>{
+  if(d.from===myId) return;
+  // auto save to correct chat key
+  let key=d.from; if(!selMsgs[key]) selMsgs[key]=[]; selMsgs[key].push({...d,time:d.time||Date.now()}); saveChats();
+  if(sel && (sel.id===d.from || sel.id===d.to)) addBubble(d,'ot',false); // already saved above? avoid double
+  else if(!sel || sel.id!==d.from){ /* notification dot */ }
+});
+
+socket.on('deleteMsg',d=>{
+  let allKeys=Object.keys(selMsgs);
+  allKeys.forEach(k=>{ selMsgs[k]=selMsgs[k].map(m=> m.msgId===d.msgId? {...m, deleted:true} : m); });
+  saveChats();
+  document.querySelectorAll(`[data-mid="${d.msgId}"]`).forEach(e=> e.innerHTML='<i style="opacity:.6">🚫 This message was deleted</i>');
+});
+
+function openStatus(){
+  let t=prompt('Status text ya image link:'); if(!t) return;
+  let isImg=t.startsWith('http'); socket.emit('postStatus',{id:myId,name:myName,dp:myDP,text:isImg?'':t,image:isImg?t:null});
+}
+function createGrp(){
+  let n=prompt('Group naam:'); if(!n) return; let gid='g_'+Date.now(); socket.emit('createGroup',{id:gid,name:n,members:[myId]}); alert('Group ban gaya: '+n); sel={id:gid,isGroup:true}; document.getElementById('nm').innerText=n; renderAll();
+}
+socket.on('statuses',list=>{
+  let bar=document.getElementById('sBar'); bar.style.display='flex'; bar.innerHTML='';
+  list.forEach(s=>{ let it=document.createElement('div'); it.className='sItem'; it.innerHTML=`<img src="${s.dp}"><div style="font-size:10px">${s.name}</div>`; it.onclick=()=>{ if(s.image) openViewer('img',s.image); else alert(s.name+': '+s.text); }; bar.appendChild(it); });
+});
+socket.on('groupMsg',d=>{
+  let key=d.groupId; if(!selMsgs[key]) selMsgs[key]=[]; selMsgs[key].push({...d,time:Date.now()}); saveChats();
+  if(sel && sel.id===key) addBubble(d,'ot',false);
+});
+socket.on('groups',gs=>{ gs.forEach(g=>{ if(!selMsgs[g.id]) selMsgs[g.id]=[]; }); saveChats(); });
 </script>
 </body>
 </html>
