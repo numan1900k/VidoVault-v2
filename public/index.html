@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<title>WhatsApp Offline Fixed</title>
+<title>WhatsApp Final Fixed</title>
 <style>
 :root{--g:#00a884;--bg:#111b21;--h:#202c33;--light:#2a3942}
 *{margin:0;padding:0;box-sizing:border-box;font-family:sans-serif}
@@ -37,22 +37,30 @@ header{background:var(--h);padding:10px 14px;display:flex;justify-content:space-
 #backBtn{background:transparent;border:none;color:#fff;font-size:22px;margin-right:10px}
 #ctxMenu{position:fixed;background:var(--h);border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.5);z-index:200;display:none}
 #ctxMenu button{width:100%;padding:12px 18px;background:transparent;border:none;color:#ff6b6b;text-align:left;cursor:pointer}
+#localVideo,#remoteVideo{width:100%;max-width:360px;border-radius:12px;background:#000}
 </style>
 </head>
 <body>
 
 <div id="loginBox"><div class="card"><h2 style="color:var(--g)">Setup</h2><input id="inName" placeholder="Name"><input id="inUname" placeholder="username"><div id="unameTick" style="font-size:13px;height:18px;text-align:left"></div><button class="sendBtn" style="width:100%;border-radius:10px" onclick="saveAcc()">Continue</button><p id="loginErr" style="color:#ff6b6b"></p></div></div>
 
-<div id="settings" class="hidden"><div class="sheet"><h3 style="text-align:center">Edit Profile</h3><img id="setDPPrev" style="width:90px;height:90px;border-radius:50%;display:block;margin:0 auto 10px;border:3px solid var(--g)"><input type="file" id="setDPIn" accept="image/*"><input id="setName"><input id="setUname"><div id="setUnameTick" style="font-size:13px;height:16px"></div><button class="sendBtn" style="width:100%;border-radius:10px" onclick="saveSettings()">Save</button><button style="width:100%;background:transparent;border:none;color:#aaa;margin-top:8px" onclick="closeSettings()">Cancel</button></div></div>
+<div id="settings" class="hidden"><div class="sheet"><h3 style="text-align:center">Edit Profile</h3><img id="setDPPrev" style="width:90px;height:90px;border-radius:50%;display:block;margin:0 auto 10px;border:3px solid var(--g);object-fit:cover"><input type="file" id="setDPIn" accept="image/*"><input id="setName" placeholder="Name"><input id="setUname" placeholder="username"><div id="setUnameTick" style="font-size:13px;height:16px"></div><button class="sendBtn" style="width:100%;border-radius:10px;padding:12px" onclick="saveSettings()">Save Profile</button><p id="setErr" style="color:#ff6b6b;text-align:center;margin-top:6px"></p><button style="width:100%;background:transparent;border:none;color:#aaa;margin-top:8px" onclick="closeSettings()">Cancel</button></div></div>
 
 <div id="newChatBox" class="hidden"><div class="sheet"><h3>New Chat</h3><input id="searchIn" placeholder="Search username..." oninput="searchU()"><div id="searchRes"></div><button style="width:100%;background:transparent;border:none;color:#aaa;margin-top:10px" onclick="closeNewChat()">Close</button></div></div>
 
 <div id="imgViewer" class="hidden" onclick="this.classList.add('hidden')"><img id="bigImg" style="max-width:95%;max-height:95%;border-radius:12px"></div>
-<div id="callBox" class="hidden"><div class="card"><h3 id="callStatus">Calling...</h3><p id="callName"></p><button class="sendBtn" style="background:#ff3b30;width:100%;border-radius:10px;margin-top:10px" onclick="endCall()">End Call</button></div></div>
+
+<div id="callBox" class="hidden"><div class="card" style="max-width:400px">
+<h3 id="callStatus">Calling...</h3><p id="callName" style="margin:6px 0"></p>
+<video id="remoteVideo" autoplay playsinline class="hidden"></video>
+<video id="localVideo" autoplay muted playsinline class="hidden" style="width:100px;height:100px;position:absolute;bottom:80px;right:20px;border:2px solid var(--g)"></video>
+<button class="sendBtn" style="background:#ff3b30;width:100%;border-radius:10px;margin-top:14px;padding:12px" onclick="endCall()">End Call</button>
+</div></div>
+
 <div id="ctxMenu"><button onclick="deleteMsg()">🗑️ Delete</button></div>
 
 <header>
-<div style="display:flex;align-items:center"><button id="backBtn" class="hidden" onclick="showList()">←</button><img id="dp" style="width:40px;height:40px;border-radius:50%"><div style="margin-left:10px"><b id="nm"></b><div id="unameShow" style="font-size:11px;opacity:.6"></div></div></div>
+<div style="display:flex;align-items:center"><button id="backBtn" class="hidden" onclick="showList()">←</button><img id="dp" style="width:40px;height:40px;border-radius:50%;object-fit:cover"><div style="margin-left:10px"><b id="nm"></b><div id="unameShow" style="font-size:11px;opacity:.6"></div></div></div>
 <div style="display:flex"><button class="iconBtn" onclick="startCall('voice')">📞</button><button class="iconBtn" onclick="startCall('video')">📹</button><button class="iconBtn" onclick="openSettings()">⚙️</button></div>
 </header>
 
@@ -62,108 +70,93 @@ header{background:var(--h);padding:10px 14px;display:flex;justify-content:space-
 </div>
 <button id="fab" onclick="openNewChat()">+</button>
 
+<audio id="notifSound" src="https://cdn.pixabay.com/audio/2022/03/24/audio_0404b6eaea.mp3" preload="auto"></audio>
+
 <script src="/socket.io/socket.io.js"></script>
 <script>
 let socket=io();
 let myId=localStorage.getItem('wa_id'), myName=localStorage.getItem('wa_name'), myUname=localStorage.getItem('wa_uname'), myDP=localStorage.getItem('wa_dp');
 let sel=JSON.parse(localStorage.getItem('wa_sel')||'null');
 let selMsgs=JSON.parse(localStorage.getItem('wa_chats')||'{}');
-// OFFLINE FIX - users ko bhi localStorage me save karo
 let allUsers=JSON.parse(localStorage.getItem('wa_users')||'{}');
-let checkTO, isCreating=false, longPressMsg=null, pc=null, callTo=null, ctxData=null;
-
+let checkTO, isCreating=false, pc=null, callTo=null, ctxData=null, callType='voice';
 function saveUsers(){ localStorage.setItem('wa_users', JSON.stringify(allUsers)); }
+
+// NOTIFICATION PERMISSION
+if(Notification && Notification.permission!=="granted"){ Notification.requestPermission(); }
+function notify(title, body){
+  try{
+    document.getElementById('notifSound').play().catch(()=>{});
+    if(Notification.permission==="granted" && document.hidden){
+      new Notification(title,{body:body,icon:myDP});
+    }
+  }catch(e){}
+}
 
 Object.keys(selMsgs).forEach(k=>{ if(k.startsWith('u_179')||k==='undefined'){ delete selMsgs[k]; }}); localStorage.setItem('wa_chats', JSON.stringify(selMsgs));
 
-if(myId){
-  document.getElementById('loginBox').classList.add('hidden');
-  document.getElementById('nm').innerText=myName;
-  document.getElementById('unameShow').innerText='@'+myUname;
-  document.getElementById('dp').src=myDP;
-  socket.emit('join',{id:myId,name:myName,username:myUname,dp:myDP});
-}
-showList(); // offline bhi list dikhegi
-
+if(myId){ document.getElementById('loginBox').classList.add('hidden'); document.getElementById('nm').innerText=myName; document.getElementById('unameShow').innerText='@'+myUname; document.getElementById('dp').src=myDP; socket.emit('join',{id:myId,name:myName,username:myUname,dp:myDP}); }
+showList();
 socket.on('connect', ()=>{ if(myId&&!isCreating) socket.emit('join',{id:myId,name:myName,username:myUname,dp:myDP}); });
+
 function saveAcc(){ let n=document.getElementById('inName').value.trim(); let u=document.getElementById('inUname').value.trim().toLowerCase().replace(/[^a-z0-9_]/g,''); if(!n||!u) return; isCreating=true; let id='u_'+Date.now(); socket.emit('join',{id:id,name:n,username:u,dp:`https://i.pravatar.cc/150?u=${id}`}); }
 socket.on('joinOk', user=>{ if(!isCreating && myId) return; localStorage.setItem('wa_id',user.id); localStorage.setItem('wa_name',user.name); localStorage.setItem('wa_uname',user.username); localStorage.setItem('wa_dp',user.dp); location.reload(); });
-socket.on('usernameTaken', ()=>{ document.getElementById('loginErr').innerText='❌ Taken'; isCreating=false; });
+socket.on('usernameTaken', ()=>{ document.getElementById('loginErr').innerText='❌ Taken'; document.getElementById('setErr').innerText='❌ Username taken'; isCreating=false; });
 socket.on('checkResult', r=>{ let el=document.getElementById('loginBox').classList.contains('hidden')?document.getElementById('setUnameTick'):document.getElementById('unameTick'); el.innerHTML=r.available?'✅ Available':'❌ Taken'; });
 document.getElementById('inUname').addEventListener('input', e=>{ let v=e.target.value.toLowerCase().trim(); if(v.length<3) return; clearTimeout(checkTO); checkTO=setTimeout(()=>socket.emit('checkUsername',{q:v,myId:myId||'temp'}),300); });
 
-function openSettings(){ document.getElementById('settings').classList.remove('hidden'); document.getElementById('setDPPrev').src=myDP; document.getElementById('setName').value=myName; document.getElementById('setUname').value=myUname; }
+// PROFILE SAVE - FIXED
+function openSettings(){ document.getElementById('settings').classList.remove('hidden'); document.getElementById('setDPPrev').src=myDP; document.getElementById('setName').value=myName; document.getElementById('setUname').value=myUname; document.getElementById('setErr').innerText=''; }
 function closeSettings(){ document.getElementById('settings').classList.add('hidden'); }
 document.getElementById('setDPIn').addEventListener('change', e=>{ let f=e.target.files[0]; if(!f) return; let r=new FileReader(); r.onload=()=>{ document.getElementById('setDPPrev').src=r.result; }; r.readAsDataURL(f); });
-function saveSettings(){ let n=document.getElementById('setName').value.trim(), u=document.getElementById('setUname').value.trim().toLowerCase(), dp=document.getElementById('setDPPrev').src; socket.emit('updateProfile',{id:myId,name:n,username:u,dp:dp}); }
-socket.on('profileUpdated', u=>{ localStorage.setItem('wa_name',u.name); localStorage.setItem('wa_uname',u.username); localStorage.setItem('wa_dp',u.dp); location.reload(); });
+function saveSettings(){
+  let n=document.getElementById('setName').value.trim();
+  let u=document.getElementById('setUname').value.trim().toLowerCase().replace(/[^a-z0-9_]/g,'');
+  let dp=document.getElementById('setDPPrev').src;
+  if(!n||!u){ document.getElementById('setErr').innerText='Name/username bharo'; return; }
+  if(u.length<3){ document.getElementById('setErr').innerText='Min 3 chars'; return; }
+  document.getElementById('setErr').innerText='Saving...';
+  // local save first so UI not stuck
+  localStorage.setItem('wa_name',n); localStorage.setItem('wa_uname',u); localStorage.setItem('wa_dp',dp);
+  myName=n; myUname=u; myDP=dp;
+  socket.emit('updateProfile',{id:myId,name:n,username:u,dp:dp});
+}
+socket.on('profileUpdated', u=>{
+  localStorage.setItem('wa_name',u.name); localStorage.setItem('wa_uname',u.username); localStorage.setItem('wa_dp',u.dp);
+  document.getElementById('setErr').innerText='✅ Saved';
+  setTimeout(()=>location.reload(),500);
+});
 
 function openNewChat(){ document.getElementById('newChatBox').classList.remove('hidden'); }
 function closeNewChat(){ document.getElementById('newChatBox').classList.add('hidden'); }
 function searchU(){ let q=document.getElementById('searchIn').value.trim(); if(q) socket.emit('searchUser', q); }
-socket.on('users', list=>{
-  list.forEach(u=>{
-    if(!u.name||u.name==='undefined'||!u.username) return;
-    allUsers[u.id]=u;
-  });
-  saveUsers();
-  renderList();
-});
+socket.on('users', list=>{ list.forEach(u=>{ if(!u.name||u.name==='undefined'||!u.username) return; allUsers[u.id]=u; }); saveUsers(); renderList(); });
 socket.on('searchResult', list=>{
-  let box=document.getElementById('searchRes'); box.innerHTML='';
-  list.forEach(u=>{ allUsers[u.id]=u; }); saveUsers();
-  list.forEach(u=>{
-    if(u.id===myId||!u.name||u.name==='undefined') return;
-    let div=document.createElement('div'); div.className='chatItem';
-    div.innerHTML=`<img src="${u.dp}"><div class="info"><div class="name">${u.name}</div><div class="last">@${u.username}</div></div>`;
-    div.onclick=()=>{ openChat(u); closeNewChat(); }; box.appendChild(div);
-  });
+  let box=document.getElementById('searchRes'); box.innerHTML=''; list.forEach(u=>{ allUsers[u.id]=u; }); saveUsers();
+  list.forEach(u=>{ if(u.id===myId||!u.name||u.name==='undefined') return; let div=document.createElement('div'); div.className='chatItem'; div.innerHTML=`<img src="${u.dp}"><div class="info"><div class="name">${u.name}</div><div class="last">@${u.username}</div></div>`; div.onclick=()=>{ openChat(u); closeNewChat(); }; box.appendChild(div); });
 });
 
 function renderList(){
   let listEl=document.getElementById('chatList'); listEl.innerHTML='';
-  // OFFLINE FIX: selMsgs se bhi users banao agar allUsers me nahi hai
   let byUsername={};
-  // 1. sabse pehle purani chats se user banao
   Object.keys(selMsgs).forEach(id=>{
     if(!selMsgs[id]||!selMsgs[id].length) return;
-    let u=allUsers[id];
-    if(!u){
-      // fallback - last message se naam nahi hai to placeholder banao par dikhao zarur
-      u={id:id,name:sel?sel.name:id,username:sel?sel.username:id,dp:`https://i.pravatar.cc/100?u=${id}`};
-      if(sel&&sel.id===id) u=sel;
-      else{
-        // agar sel me stored user same id ka hai to use karo
-        let storedSel=JSON.parse(localStorage.getItem('wa_sel')||'null');
-        if(storedSel&&storedSel.id===id) u=storedSel;
-      }
-    }
+    let u=allUsers[id]||sel; if(!u) return;
     if(u.id===myId) return;
     let last=selMsgs[id][selMsgs[id].length-1];
     byUsername[id]={user:u,time:last.time,text:last.file?'📎 Photo':last.text, id:id};
   });
-  // 2. online users bhi add karo jo chat me nahi hai
-  Object.values(allUsers).forEach(u=>{
-    if(!u.username||u.username==='undefined'||!u.name||u.name==='undefined'||u.id===myId) return;
-    if(!byUsername[u.id]) byUsername[u.id]={user:u,time:0,text:u.online?'🟢 Online':'Tap to chat', id:u.id};
-  });
-
+  Object.values(allUsers).forEach(u=>{ if(!u.username||u.username==='undefined'||!u.name||u.name==='undefined'||u.id===myId) return; if(!byUsername[u.id]) byUsername[u.id]={user:u,time:0,text:u.online?'🟢 Online':'Tap to chat', id:u.id}; });
   let entries=Object.values(byUsername).sort((a,b)=>b.time-a.time);
-  if(!entries.length){ listEl.innerHTML='<p style="text-align:center;opacity:.5;margin-top:50px">No chats yet<br>Tap + to start<br><small>Offline bhi dikhega</small></p>'; return; }
-  entries.forEach(entry=>{
-    let u=entry.user; let time=entry.time? new Date(entry.time).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):'';
-    let div=document.createElement('div'); div.className='chatItem';
-    div.innerHTML=`<img src="${u.dp}"><div class="info"><div class="topRow"><div class="name">${u.name}</div><div class="time">${time}</div></div><div class="last">${entry.text}</div></div>`;
-    div.onclick=()=>openChat(u); listEl.appendChild(div);
-  });
+  if(!entries.length){ listEl.innerHTML='<p style="text-align:center;opacity:.5;margin-top:50px">No chats yet<br>Tap + to start</p>'; return; }
+  entries.forEach(entry=>{ let u=entry.user; let time=entry.time? new Date(entry.time).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):''; let div=document.createElement('div'); div.className='chatItem'; div.innerHTML=`<img src="${u.dp}"><div class="info"><div class="topRow"><div class="name">${u.name}</div><div class="time">${time}</div></div><div class="last">${entry.text}</div></div>`; div.onclick=()=>openChat(u); listEl.appendChild(div); });
 }
 function showList(){ document.getElementById('chatView').style.display='none'; document.getElementById('chatList').style.display='block'; document.getElementById('fab').style.display='block'; document.getElementById('backBtn').classList.add('hidden'); document.getElementById('dp').style.display='block'; if(myId){ document.getElementById('nm').innerText=myName; document.getElementById('unameShow').innerText='@'+myUname; } renderList(); }
 function openChat(u){ sel={id:u.id,name:u.name,username:u.username,dp:u.dp}; localStorage.setItem('wa_sel', JSON.stringify(sel)); allUsers[u.id]=u; saveUsers(); document.getElementById('nm').innerText=u.name; document.getElementById('unameShow').innerText='@'+u.username; document.getElementById('dp').src=u.dp; document.getElementById('chatList').style.display='none'; document.getElementById('chatView').style.display='flex'; document.getElementById('fab').style.display='none'; document.getElementById('backBtn').classList.remove('hidden'); renderMessages(); }
 function renderMessages(){ let c=document.getElementById('chat'); c.innerHTML=''; if(!sel) return; (selMsgs[sel.id]||[]).forEach((m,i)=> addBubble(m,m.from===myId?'me':'ot',false,i)); }
 function addBubble(d,type,doSave,i){
   let c=document.getElementById('chat'); let el=document.createElement('div'); el.className='b '+(type==='me'?'me':'ot'); el.dataset.index=i;
-  let html=''; if(d.file) html+=`<img src="${d.file}" onclick="openImg('${d.file}')" style="cursor:pointer"><br>`; html+=`${d.text||''}<div class="meta">${new Date(d.time).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})} ${type==='me'?'✓✓':''}</div>`;
-  el.innerHTML=html;
+  let html=''; if(d.file) html+=`<img src="${d.file}" onclick="openImg('${d.file}')" style="cursor:pointer"><br>`; html+=`${d.text||''}<div class="meta">${new Date(d.time).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})} ${type==='me'?'✓✓':''}</div>`; el.innerHTML=html;
   el.addEventListener('contextmenu', e=>{ e.preventDefault(); showCtx(e,d); }); let pt; el.addEventListener('touchstart', e=>{ pt=setTimeout(()=>showCtx(e,d),600); }); el.addEventListener('touchend', ()=>clearTimeout(pt));
   c.appendChild(el); c.scrollTop=c.scrollHeight;
   if(doSave){ if(!selMsgs[sel.id]) selMsgs[sel.id]=[]; selMsgs[sel.id].push(d); localStorage.setItem('wa_chats', JSON.stringify(selMsgs)); renderList(); }
@@ -175,16 +168,47 @@ function deleteMsg(){ if(!ctxData||!sel) return; selMsgs[sel.id]=selMsgs[sel.id]
 function sendMsg(){ let txt=document.getElementById('msg').value.trim(); if(!sel||!txt) return; let data={msgId:'m_'+Date.now(), text:txt, from:myId, to:sel.id, time:Date.now()}; addBubble(data,'me',true, selMsgs[sel.id]?selMsgs[sel.id].length:0); socket.emit('send', data); document.getElementById('msg').value=''; }
 document.getElementById('sBtn').onclick=sendMsg; document.getElementById('msg').addEventListener('keypress', e=>{if(e.key==='Enter') sendMsg();});
 document.getElementById('fileIn').addEventListener('change', e=>{ let f=e.target.files[0]; if(!f||!sel) return; let r=new FileReader(); r.onload=()=>{ let data={msgId:'m_'+Date.now(), text:f.name, file:r.result, from:myId, to:sel.id, time:Date.now()}; addBubble(data,'me',true, selMsgs[sel.id]?selMsgs[sel.id].length:0); socket.emit('send', data); }; r.readAsDataURL(f); e.target.value=''; });
-socket.on('receive', data=>{ if(!selMsgs[data.from]) selMsgs[data.from]=[]; selMsgs[data.from].push(data); localStorage.setItem('wa_chats', JSON.stringify(selMsgs)); if(sel&&sel.id===data.from) addBubble(data,'ot',false, selMsgs[data.from].length-1); else renderList(); });
 
-// CALL
-async function createPC(){ pc=new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'}]}); pc.onicecandidate=e=>{ if(e.candidate&&callTo) socket.emit('ice',{to:callTo,candidate:e.candidate}); }; pc.ontrack=e=>{ let audio=document.createElement('audio'); audio.srcObject=e.streams[0]; audio.autoplay=true; document.body.appendChild(audio); }; let stream=await navigator.mediaDevices.getUserMedia({audio:true}); stream.getTracks().forEach(t=>pc.addTrack(t,stream)); }
-async function startCall(type){ if(!sel) return alert('Chat select karo'); callTo=sel.id; document.getElementById('callBox').classList.remove('hidden'); document.getElementById('callName').innerText=sel.name; document.getElementById('callStatus').innerText='Calling...'; await createPC(); let offer=await pc.createOffer(); await pc.setLocalDescription(offer); socket.emit('callUser',{from:myId,fromName:myName,to:callTo,offer:offer,type:type}); }
-socket.on('incomingCall', async d=>{ if(!confirm(d.fromName+' is calling... Accept?')) return; callTo=d.from; document.getElementById('callBox').classList.remove('hidden'); document.getElementById('callName').innerText=d.fromName; document.getElementById('callStatus').innerText='In Call'; await createPC(); await pc.setRemoteDescription(d.offer); let ans=await pc.createAnswer(); await pc.setLocalDescription(ans); socket.emit('answerCall',{to:d.from,answer:ans}); });
-socket.on('callAnswered', async d=>{ if(pc) await pc.setRemoteDescription(d.answer); document.getElementById('callStatus').innerText='In Call'; });
+socket.on('receive', data=>{
+  if(!selMsgs[data.from]) selMsgs[data.from]=[];
+  selMsgs[data.from].push(data); localStorage.setItem('wa_chats', JSON.stringify(selMsgs));
+  notify(allUsers[data.from]?.name||'New message', data.file?'📎 Photo':data.text);
+  if(sel&&sel.id===data.from) addBubble(data,'ot',false, selMsgs[data.from].length-1); else renderList();
+});
+
+// CALL - VOICE + VIDEO FIXED
+async function createPC(isVideo){
+  pc=new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'}]});
+  pc.onicecandidate=e=>{ if(e.candidate&&callTo) socket.emit('ice',{to:callTo,candidate:e.candidate}); };
+  pc.ontrack=e=>{
+    let rv=document.getElementById('remoteVideo');
+    if(isVideo || e.streams[0].getVideoTracks().length>0){ rv.classList.remove('hidden'); rv.srcObject=e.streams[0]; }
+    else{
+      let audio=document.createElement('audio'); audio.id='remoteAudio'; audio.srcObject=e.streams[0]; audio.autoplay=true; document.body.appendChild(audio);
+    }
+  };
+  let constraints=isVideo?{video:true,audio:true}:{audio:true};
+  let stream=await navigator.mediaDevices.getUserMedia(constraints);
+  if(isVideo){ let lv=document.getElementById('localVideo'); lv.classList.remove('hidden'); lv.srcObject=stream; document.getElementById('remoteVideo').classList.remove('hidden'); }
+  stream.getTracks().forEach(t=>pc.addTrack(t,stream));
+  return stream;
+}
+async function startCall(type){
+  if(!sel) return alert('Chat select karo'); callType=type; callTo=sel.id;
+  document.getElementById('callBox').classList.remove('hidden'); document.getElementById('callName').innerText=sel.name; document.getElementById('callStatus').innerText= (type==='video'?'Video':'Voice')+' Calling...';
+  let stream=await createPC(type==='video'); let offer=await pc.createOffer(); await pc.setLocalDescription(offer);
+  socket.emit('callUser',{from:myId,fromName:myName,to:callTo,offer:offer,type:type});
+}
+socket.on('incomingCall', async d=>{
+  notify('Incoming '+d.type+' call', d.fromName+' is calling');
+  if(!confirm(d.fromName+' ka '+(d.type==='video'?'Video':'Voice')+' call... Accept karo?')) return;
+  callType=d.type; callTo=d.from;
+  document.getElementById('callBox').classList.remove('hidden'); document.getElementById('callName').innerText=d.fromName; document.getElementById('callStatus').innerText='In Call - '+d.type;
+  let stream=await createPC(d.type==='video'); await pc.setRemoteDescription(d.offer); let ans=await pc.createAnswer(); await pc.setLocalDescription(ans);
+  socket.emit('answerCall',{to:d.from,answer:ans});
+});
+socket.on('callAnswered', async d=>{ if(pc) await pc.setRemoteDescription(d.answer); document.getElementById('callStatus').innerText='In Call - '+callType; });
 socket.on('ice', async d=>{ if(pc&&d.candidate) await pc.addIceCandidate(d.candidate); });
 socket.on('callEnded', ()=>{ endCall(); });
-function endCall(){ if(pc){ pc.close(); pc=null; } document.getElementById('callBox').classList.add('hidden'); if(callTo) socket.emit('endCall',{to:callTo}); callTo=null; document.querySelectorAll('audio').forEach(a=>a.remove()); }
-</script>
-</body>
-</html>
+function endCall(){
+  if(pc){ pc.clos
