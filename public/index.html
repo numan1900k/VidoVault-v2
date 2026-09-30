@@ -2,73 +2,67 @@
 <html>
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>WhatsApp Final</title>
+<title>WhatsApp Full</title>
 <style>
 :root{--g:#00a884;--bg:#111b21;--h:#202c33;--light:#2a3942}
 *{margin:0;padding:0;box-sizing:border-box;font-family:sans-serif}
 body{background:var(--bg);color:#e9edef;height:100vh;display:flex;flex-direction:column}
-header{background:var(--h);padding:12px 14px;display:flex;justify-content:space-between;align-items:center}
+header{background:var(--h);padding:10px 14px;display:flex;justify-content:space-between;align-items:center}
 #main{flex:1;display:flex;flex-direction:column;overflow:hidden}
 #chatList{flex:1;overflow:auto;background:var(--bg)}
 .chatItem{display:flex;gap:12px;padding:12px 14px;border-bottom:1px solid #1f2c34;cursor:pointer;align-items:center}
 .chatItem img{width:50px;height:50px;border-radius:50%;object-fit:cover}
-.chatItem.info{flex:1;overflow:hidden}
-.top{display:flex;justify-content:space-between}
-.name{font-weight:600;font-size:16px}
-.time{font-size:11px;opacity:.6}
+.info{flex:1;overflow:hidden}
+.topRow{display:flex;justify-content:space-between;align-items:center;width:100%}
+.name{font-weight:600;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.time{font-size:11px;opacity:.6;white-space:nowrap;margin-left:8px}
 .last{font-size:13px;opacity:.7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
 #chatView{flex:1;display:none;flex-direction:column;background:#0b141a}
 #chat{flex:1;overflow:auto;padding:10px;display:flex;flex-direction:column;gap:6px}
-.b{max-width:75%;padding:8px 10px;border-radius:8px;word-break:break-word}
+.b{max-width:75%;padding:8px 10px;border-radius:8px;word-break:break-word;font-size:14px}
+.b img{max-width:100%;border-radius:8px;margin-bottom:4px}
 .me{align-self:flex-end;background:#005c4b}.ot{align-self:flex-start;background:#202c33}
-.meta{font-size:10px;opacity:.6;text-align:right}
-.input{background:var(--h);padding:8px;display:flex;gap:8px}
-.input input{flex:1;padding:12px 16px;border-radius:22px;border:none;background:var(--light);color:#fff;outline:none}
-.bt{width:42px;height:42px;border-radius:50%;border:none;background:var(--g);color:#fff;cursor:pointer}
+.meta{font-size:10px;opacity:.6;text-align:right;margin-top:2px}
+.input{background:var(--h);padding:8px;display:flex;gap:6px;align-items:center}
+.input input[type=text]{flex:1;padding:12px 16px;border-radius:22px;border:none;background:var(--light);color:#fff;outline:none}
+.iconBtn{width:42px;height:42px;border-radius:50%;border:none;background:transparent;color:#8696a0;font-size:20px;cursor:pointer}
+.sendBtn{width:42px;height:42px;border-radius:50%;border:none;background:var(--g);color:#fff;font-size:18px;cursor:pointer}
 #fab{position:fixed;bottom:20px;right:20px;width:58px;height:58px;border-radius:50%;background:var(--g);color:#fff;font-size:32px;border:none;z-index:10}
-#settings,#newChatBox,#loginBox{position:fixed;inset:0;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;padding:16px;z-index:100}
+#settings,#newChatBox,#loginBox,#statusBox{position:fixed;inset:0;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;padding:16px;z-index:100}
 .hidden{display:none!important}
 .sheet{background:var(--h);width:100%;max-width:360px;border-radius:16px;padding:18px}
 .sheet input{width:100%;padding:12px;border-radius:8px;border:none;background:var(--light);color:#fff;margin:8px 0}
 .card{background:var(--h);padding:22px;border-radius:14px;width:90%;max-width:360px;text-align:center}
 .card input{width:100%;padding:12px;border-radius:8px;border:none;margin:6px 0;background:var(--light);color:#fff}
 #backBtn{background:transparent;border:none;color:#fff;font-size:22px;margin-right:10px}
-#dpBig{width:90px;height:90px;border-radius:50%;object-fit:cover;display:block;margin:0 auto 10px;border:3px solid var(--g);cursor:pointer}
+.callBtn{background:transparent;border:none;color:#00a884;font-size:20px;margin-left:8px;cursor:pointer}
 </style>
 </head>
 <body>
 
-<div id="loginBox"><div class="card">
-<h2 style="color:var(--g)">Setup</h2>
-<input id="inName" placeholder="Name"><input id="inUname" placeholder="username">
-<div id="unameTick" style="font-size:13px;height:18px;text-align:left"></div>
-<button class="bt" style="width:100%;border-radius:10px" onclick="saveAcc()">Continue</button>
-<p id="loginErr" style="color:#ff6b6b;font-size:13px"></p>
-</div></div>
+<div id="loginBox"><div class="card"><h2 style="color:var(--g)">Setup</h2><input id="inName" placeholder="Name"><input id="inUname" placeholder="username"><div id="unameTick" style="font-size:13px;height:18px;text-align:left"></div><button class="sendBtn" style="width:100%;border-radius:10px" onclick="saveAcc()">Continue</button><p id="loginErr" style="color:#ff6b6b"></p></div></div>
 
-<!-- SETTINGS WITH PHOTO UPDATE -->
-<div id="settings" class="hidden"><div class="sheet">
-<h3 style="text-align:center">Edit Profile</h3>
-<img id="setDPPrev" src="" style="width:90px;height:90px;border-radius:50%;display:block;margin:0 auto 10px;border:3px solid var(--g)">
-<input type="file" id="setDPIn" accept="image/*" style="padding:6px">
-<p style="font-size:11px;opacity:.6;text-align:center">Tap to change photo</p>
-<input id="setName" placeholder="Name"><input id="setUname" placeholder="username">
-<div id="setUnameTick" style="font-size:13px;height:16px"></div>
-<button class="bt" style="width:100%;border-radius:10px;margin-top:8px" onclick="saveSettings()">Save</button>
-<button style="width:100%;background:transparent;border:none;color:#aaa;margin-top:8px" onclick="closeSettings()">Cancel</button>
-<p id="setErr" style="color:#ff6b6b;text-align:center"></p>
-</div></div>
+<div id="settings" class="hidden"><div class="sheet"><h3 style="text-align:center">Edit Profile</h3><img id="setDPPrev" style="width:90px;height:90px;border-radius:50%;display:block;margin:0 auto 10px;border:3px solid var(--g)"><input type="file" id="setDPIn" accept="image/*"><input id="setName" placeholder="Name"><input id="setUname" placeholder="username"><div id="setUnameTick" style="font-size:13px;height:16px"></div><button class="sendBtn" style="width:100%;border-radius:10px" onclick="saveSettings()">Save</button><button style="width:100%;background:transparent;border:none;color:#aaa;margin-top:8px" onclick="closeSettings()">Cancel</button><p id="setErr" style="color:#ff6b6b;text-align:center"></p></div></div>
 
 <div id="newChatBox" class="hidden"><div class="sheet"><h3>New Chat</h3><input id="searchIn" placeholder="Search username..." oninput="searchU()"><div id="searchRes"></div><button style="width:100%;background:transparent;border:none;color:#aaa;margin-top:10px" onclick="closeNewChat()">Close</button></div></div>
 
+<div id="statusBox" class="hidden"><div class="sheet"><h3 style="text-align:center">Status</h3><p style="text-align:center;opacity:.7;font-size:13px;margin:10px 0">Status feature coming soon</p><button style="width:100%;background:transparent;border:none;color:#aaa" onclick="document.getElementById('statusBox').classList.add('hidden')">Close</button></div></div>
+
 <header>
-<div style="display:flex;align-items:center"><button id="backBtn" class="hidden" onclick="showList()">←</button><img id="dp" style="width:40px;height:40px;border-radius:50%"><div style="margin-left:10px"><b id="nm"></b><div id="unameShow" style="font-size:11px;opacity:.6"></div></div></div>
-<button class="bt" onclick="openSettings()">⚙️</button>
+<div style="display:flex;align-items:center"><button id="backBtn" class="hidden" onclick="showList()">←</button><img id="dp" style="width:40px;height:40px;border-radius:50%;object-fit:cover"><div style="margin-left:10px"><b id="nm"></b><div id="unameShow" style="font-size:11px;opacity:.6"></div></div></div>
+<div style="display:flex;align-items:center">
+<button class="callBtn" onclick="makeCall('voice')">📞</button><button class="callBtn" onclick="makeCall('video')">📹</button><button class="callBtn" onclick="document.getElementById('statusBox').classList.remove('hidden')">●</button><button class="iconBtn" onclick="openSettings()">⚙️</button>
+</div>
 </header>
 
 <div id="main">
 <div id="chatList"></div>
-<div id="chatView"><div id="chat"></div><div class="input"><input id="msg" placeholder="Message"><button class="bt" id="sBtn">➤</button></div></div>
+<div id="chatView"><div id="chat"></div>
+<div class="input">
+<button class="iconBtn" onclick="document.getElementById('fileIn').click()">📎</button><input type="file" id="fileIn" accept="image/*,application/pdf,.doc,.docx" style="display:none">
+<input type="text" id="msg" placeholder="Message"><button class="sendBtn" id="sBtn">➤</button>
+</div>
+</div>
 </div>
 <button id="fab" onclick="openNewChat()">+</button>
 
@@ -101,21 +95,13 @@ function saveAcc(){
 }
 socket.on('joinOk', user=>{ if(!isCreating) return; localStorage.setItem('wa_id',user.id); localStorage.setItem('wa_name',user.name); localStorage.setItem('wa_uname',user.username); localStorage.setItem('wa_dp',user.dp); location.reload(); });
 socket.on('usernameTaken', ()=>{ document.getElementById('loginErr').innerText='❌ Taken'; document.getElementById('setErr').innerText='❌ Taken'; isCreating=false; });
-socket.on('checkResult', r=>{
-  let el=document.getElementById('loginBox').classList.contains('hidden')?document.getElementById('setUnameTick'):document.getElementById('unameTick');
-  el.innerHTML=r.available?'✅ Available':'❌ Taken';
-});
+socket.on('checkResult', r=>{ let el=document.getElementById('loginBox').classList.contains('hidden')?document.getElementById('setUnameTick'):document.getElementById('unameTick'); el.innerHTML=r.available?'✅ Available':'❌ Taken'; });
 document.getElementById('inUname').addEventListener('input', e=>{ let v=e.target.value.toLowerCase().trim(); let t=document.getElementById('unameTick'); if(v.length<3){t.innerHTML='';return;} t.innerHTML='⏳'; clearTimeout(checkTO); checkTO=setTimeout(()=>socket.emit('checkUsername',{q:v,myId:myId||'temp'}),300); });
 document.getElementById('setUname').addEventListener('input', e=>{ let v=e.target.value.toLowerCase().trim(); let t=document.getElementById('setUnameTick'); if(v.length<3){t.innerHTML='';return;} t.innerHTML='⏳'; clearTimeout(checkTO); checkTO=setTimeout(()=>socket.emit('checkUsername',{q:v,myId:myId}),300); });
 
 function openSettings(){ document.getElementById('settings').classList.remove('hidden'); document.getElementById('setDPPrev').src=myDP; document.getElementById('setName').value=myName; document.getElementById('setUname').value=myUname; }
 function closeSettings(){ document.getElementById('settings').classList.add('hidden'); }
-// PHOTO UPDATE FIX
-document.getElementById('setDPIn').addEventListener('change', e=>{
-  let f=e.target.files[0]; if(!f) return;
-  let r=new FileReader(); r.onload=()=>{ document.getElementById('setDPPrev').src=r.result; };
-  r.readAsDataURL(f);
-});
+document.getElementById('setDPIn').addEventListener('change', e=>{ let f=e.target.files[0]; if(!f) return; let r=new FileReader(); r.onload=()=>{ document.getElementById('setDPPrev').src=r.result; }; r.readAsDataURL(f); });
 function saveSettings(){ let n=document.getElementById('setName').value.trim(), u=document.getElementById('setUname').value.trim().toLowerCase(), dp=document.getElementById('setDPPrev').src; socket.emit('updateProfile',{id:myId,name:n,username:u,dp:dp}); }
 socket.on('profileUpdated', u=>{ localStorage.setItem('wa_name',u.name); localStorage.setItem('wa_uname',u.username); localStorage.setItem('wa_dp',u.dp); location.reload(); });
 
@@ -124,8 +110,7 @@ function closeNewChat(){ document.getElementById('newChatBox').classList.add('hi
 function searchU(){ let q=document.getElementById('searchIn').value.trim(); if(q) socket.emit('searchUser', q); }
 socket.on('users', list=>{ list.forEach(u=> allUsers[u.id]=u); renderList(); });
 socket.on('searchResult', list=>{
-  let box=document.getElementById('searchRes'); box.innerHTML='';
-  list.forEach(u=> allUsers[u.id]=u );
+  let box=document.getElementById('searchRes'); box.innerHTML=''; list.forEach(u=> allUsers[u.id]=u );
   list.forEach(u=>{ if(u.id===myId) return; let div=document.createElement('div'); div.className='chatItem'; div.innerHTML=`<img src="${u.dp}"><div class="info"><div class="name">${u.name}</div><div class="last">@${u.username}</div></div>`; div.onclick=()=>{ openChat(u); closeNewChat(); }; box.appendChild(div); });
 });
 
@@ -138,19 +123,43 @@ function renderList(){
   ids.forEach(id=>{
     if(id===myId) return;
     let u = allUsers[id] || {name:id, username:id, dp:`https://i.pravatar.cc/100?u=${id}`};
-    let msgs = selMsgs[id]||[]; let last = msgs.length? msgs[msgs.length-1].text : 'Tap to chat';
+    let msgs = selMsgs[id]||[]; let last = msgs.length? (msgs[msgs.length-1].file? '📎 File' : msgs[msgs.length-1].text) : 'Tap to chat';
     let time = msgs.length? new Date(msgs[msgs.length-1].time).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : '';
-    let div=document.createElement('div'); div.className='chatItem'; div.innerHTML=`<img src="${u.dp}"><div class="info"><div class="top"><div class="name">${u.name}</div><div class="time">${time}</div></div><div class="last">${last}</div></div>`;
+    let div=document.createElement('div'); div.className='chatItem';
+    div.innerHTML=`<img src="${u.dp}"><div class="info"><div class="topRow"><div class="name">${u.name}</div><div class="time">${time}</div></div><div class="last">${last}</div></div>`;
     div.onclick=()=> openChat(u); listEl.appendChild(div);
   });
 }
 function showList(){ document.getElementById('chatView').style.display='none'; document.getElementById('chatList').style.display='block'; document.getElementById('fab').style.display='block'; document.getElementById('backBtn').classList.add('hidden'); document.getElementById('dp').style.display='block'; if(myId){ document.getElementById('nm').innerText=myName; document.getElementById('unameShow').innerText='@'+myUname; } renderList(); }
 function openChat(u){ sel={id:u.id,name:u.name,username:u.username,dp:u.dp}; localStorage.setItem('wa_sel', JSON.stringify(sel)); allUsers[u.id]=u; document.getElementById('nm').innerText=u.name; document.getElementById('unameShow').innerText='@'+u.username; document.getElementById('dp').src=u.dp; document.getElementById('chatList').style.display='none'; document.getElementById('chatView').style.display='flex'; document.getElementById('fab').style.display='none'; document.getElementById('backBtn').classList.remove('hidden'); renderMessages(); }
 function renderMessages(){ let c=document.getElementById('chat'); c.innerHTML=''; if(!sel) return; (selMsgs[sel.id]||[]).forEach(m=> addBubble(m,m.from===myId?'me':'ot',false)); }
-function addBubble(d,type,doSave=true){ let c=document.getElementById('chat'); let el=document.createElement('div'); el.className='b '+(type==='me'?'me':'ot'); el.innerHTML=`${d.text}<div class="meta">${new Date(d.time).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})} ${type==='me'?'✓✓':''}</div>`; c.appendChild(el); c.scrollTop=c.scrollHeight; if(doSave){ if(!selMsgs[sel.id]) selMsgs[sel.id]=[]; selMsgs[sel.id].push(d); localStorage.setItem('wa_chats', JSON.stringify(selMsgs)); renderList(); } }
-function sendMsg(){ let txt=document.getElementById('msg').value.trim(); if(!sel||!txt) return; let data={msgId:'m_'+Date.now(), text:txt, from:myId, to:sel.id, time:Date.now()}; addBubble(data,'me',true); socket.emit('send', data); document.getElementById('msg').value=''; }
+function addBubble(d,type,doSave=true){
+  let c=document.getElementById('chat'); let el=document.createElement('div'); el.className='b '+(type==='me'?'me':'ot');
+  let content='';
+  if(d.file){ content+=`<img src="${d.file}" style="max-width:200px;border-radius:8px;display:block"><br>`; }
+  content+=`${d.text||''}<div class="meta">${new Date(d.time).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})} ${type==='me'?'✓✓':''}</div>`;
+  el.innerHTML=content;
+  c.appendChild(el); c.scrollTop=c.scrollHeight;
+  if(doSave){ if(!selMsgs[sel.id]) selMsgs[sel.id]=[]; selMsgs[sel.id].push(d); localStorage.setItem('wa_chats', JSON.stringify(selMsgs)); renderList(); }
+}
+function sendMsg(){
+  let txt=document.getElementById('msg').value.trim();
+  if(!sel||!txt) return;
+  let data={msgId:'m_'+Date.now(), text:txt, from:myId, to:sel.id, time:Date.now()};
+  addBubble(data,'me',true); socket.emit('send', data); document.getElementById('msg').value='';
+}
 document.getElementById('sBtn').onclick=sendMsg;
 document.getElementById('msg').addEventListener('keypress', e=>{if(e.key==='Enter') sendMsg();});
+// FILE SEND
+document.getElementById('fileIn').addEventListener('change', e=>{
+  let f=e.target.files[0]; if(!f||!sel) return;
+  let r=new FileReader(); r.onload=()=>{
+    let data={msgId:'m_'+Date.now(), text:f.name, file:r.result, from:myId, to:sel.id, time:Date.now()};
+    addBubble(data,'me',true); socket.emit('send', data);
+  }; r.readAsDataURL(f);
+});
+function makeCall(type){ if(!sel) return alert('Pehle chat select karo'); alert(type+' call to '+sel.name+' - WebRTC next step me add karenge'); }
+
 socket.on('receive', data=>{ if(!selMsgs[data.from]) selMsgs[data.from]=[]; selMsgs[data.from].push(data); localStorage.setItem('wa_chats', JSON.stringify(selMsgs)); if(sel && sel.id===data.from) addBubble(data,'ot',false); else renderList(); });
 </script>
 </body>
